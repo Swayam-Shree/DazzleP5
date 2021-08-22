@@ -1,0 +1,1 @@
+let enableShatterDecals = true;
