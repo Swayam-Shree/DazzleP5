@@ -50,7 +50,7 @@ function makeHud(){
 				this.graphics.textSize(14) ; 
 				this.graphics.textAlign(this.graphics.RIGHT, this.graphics.BOTTOM);
 				// this.graphics.text((1+h%13) + ":" + minute() + (h>11?" pm":" am") , this.w , 165);
-				this.graphics.text(h === 0 ? 12 : h % 12 + ":" + minute() + (h > 11 ? " pm" : " am") , this.w , 165);
+				this.graphics.text(((h === 0 || h === 12) ? 12 : h % 12) + ":" + minute() + (h > 11 ? " pm" : " am") , this.w , 165);
 				this.graphics.textSize(10) ; 
 				this.graphics.text("Server: North America" , this.w, this.h);
 				

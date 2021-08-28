@@ -21,17 +21,6 @@ function page_setup(g) {
   x.add_item("High");
   x.add_item("Ultra");
   page_options.contents.push(x);
-
-  // ADD - sum of A and B
-  // DARKEST - only the darkest colour succeeds: C = min(A*factor, B).
-  // LIGHTEST - only the lightest colour succeeds: C = max(A*factor, B).
-  // DIFFERENCE - subtract colors from underlying image.
-  // EXCLUSION - similar to DIFFERENCE, but less extreme.
-  // MULTIPLY - multiply the colors, result will always be darker.
-  // SCREEN - opposite multiply, uses inverse values of the colors.
-  // REPLACE - the pixels entirely replace the others and don't utilize alpha (transparency) values.
-  // REMOVE - removes pixels from B with the alpha strength of A.
-  // SUBTRACT - remainder of A and B (3D)
   
   x = new Option_picker(page_options.graphics, 350, 300);
   t = ["ADD", "DARKEST", "LIGHTEST", "DIFFERENCE", "EXCLUSION", "MULTIPLY", "SCREEN", "REPLACE", "REMOVE", "SUBTRACT"];
@@ -99,6 +88,7 @@ function page_setup(g) {
 	this.graphics.textAlign(this.graphics.LEFT, this.graphics.CENTER);
 	this.graphics.fill(200);
 	this.graphics.text("Render distance :", 50, 200);
+	this.graphics.text("Blend mode :", 50, 300);
 	this.graphics.pop();
   };
   page_graphics = new Page(g, "Graphics");
