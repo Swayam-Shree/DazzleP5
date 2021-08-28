@@ -76,13 +76,18 @@ Player.prototype.update = function(){
 	this.looking = makeVector(this.pos, this.facing).normalize();
 
 	if (this.health <= 0){
+		let enemy = enemySocketMap[this.lastShotBy];
+		new_killfeed(enemy.name, this.name, this.col, enemy.col);
+		side_notifications[side_notifications.length - 1].important = true ;
 		socket.emit("playerKilled", this.lastShotBy);
+		// ++enemy.kills;
 		++this.deaths;
 		this.respawn();
 		this.health = 500;
 	}
 
 	this.col = color_picker.picker.color();
+	this.col.setAlpha(color_picker.alpha_slider.value);
 
 	let col = this.col.toString();
 	if (col !== this.prevCol.toString()){
@@ -105,6 +110,7 @@ Player.prototype.moveForward = function(){
 	else {
 		player.pos.add(createVector(player.looking.x, 0, player.looking.z).setMag(player.walkSpeed));
 	}
+	this.camera.setPosition(this.pos.x, this.pos.y, this.pos.z);
 }
 Player.prototype.moveBackward = function(){
 	if (this.sprinting){
@@ -113,6 +119,7 @@ Player.prototype.moveBackward = function(){
 	else {
 		player.pos.add(createVector(player.looking.x, 0, player.looking.z).setMag(-player.walkSpeed));
 	}
+	this.camera.setPosition(this.pos.x, this.pos.y, this.pos.z);
 }
 Player.prototype.moveLeft = function(){
 	if (this.sprinting){
@@ -121,6 +128,7 @@ Player.prototype.moveLeft = function(){
 	else {
 		player.pos.add(player.looking.cross(up).setMag(player.walkSpeed));
 	}
+	this.camera.setPosition(this.pos.x, this.pos.y, this.pos.z);
 }
 Player.prototype.moveRight = function(){
 	if (this.sprinting){
@@ -129,6 +137,7 @@ Player.prototype.moveRight = function(){
 	else {
 		player.pos.add(player.looking.cross(up).setMag(-player.walkSpeed));
 	}
+	this.camera.setPosition(this.pos.x, this.pos.y, this.pos.z);
 }
 Player.prototype.respawn = function(){
 	this.pos.set(random(-500, 500), -500, random(-500, 500));
@@ -170,7 +179,7 @@ Player.prototype.planeCulling = function(plane){
 		(dotDownFront > rangeDown && dotDownFront < rangeUp) || (dotCenter > rangeDown && dotCenter < rangeUp);
 	}
 }
-Player.prototype.circleCulling = function(x, y, z){
+Player.prototype.pointCulling = function(x, y, z){
 	let rangeDown = 0.5;
 	let decalPos;
 	if (y){
@@ -282,16 +291,32 @@ Player.prototype.paint = function(){
 	if (lookingPlane && lookingPt){
 		let [x, y] = lookingPlane.convertWorldCoords(lookingPt);
 		let [px, py] = lookingPlane.convertWorldCoords(this.pLookingPt);
-		x = x | 0; y = y | 0; px = px | 0; py = py | 0; // converts float to int would only work for 32 bit sint
+		// x = x | 0; y = y | 0; px = px | 0; py = py | 0; // converts float to int would only work for 32 bit sint
+		socket.emit("playerPaint", lookingPlane.index, x, y, px, py, color_picker.size_slider.value, this.col.toString());
+		x  *= planeGraphicResolutionScale;
+		y  *= planeGraphicResolutionScale; 
+		px *= planeGraphicResolutionScale;
+		py *= planeGraphicResolutionScale;
 		lookingPlane.paint(x, y, px, py, color_picker.size_slider.value, this.col);
-		socket.emit("playerPaint", lookingPlane.index, x, y, px, py, color_picker.size_slider.value); // optimize by sending plane index and slider value only on change
 		this.pLookingPlane = lookingPlane;
 		this.pLookingPt = lookingPt;
 	}
 }
-Player.prototype.clearPaint = function(){
+Player.prototype.textSpray = function(text){
 	let [lookingPlane, lookingPt] = this.lookingAt(mMap);
-	if (lookingPlane) lookingPlane.clear();
+	if (lookingPlane){
+		let [x, y] = lookingPlane.convertWorldCoords(lookingPt);
+		let strokeCol = color(0, 0);
+		if (lookingPlane.axis === "y"){
+			socket.emit("playerTextSpray", lookingPlane.index, x, y, text, this.col.toString(), strokeCol.toString(),
+						this.orientation);
+			lookingPlane.text(x, y, text, this.col, strokeCol, this.orientation);
+		}
+		else{
+			socket.emit("playerTextSpray", lookingPlane.index, x, y, text, this.col.toString(), strokeCol.toString(), 0);
+			lookingPlane.text(x, y, text, this.col, strokeCol, 0);
+		}
+	}
 }
 Player.prototype.shoot = function(){
 	let bulletInitial = this.pos.copy();

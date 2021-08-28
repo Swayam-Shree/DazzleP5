@@ -16,17 +16,16 @@ height: 12px;
 }
 
 ::-webkit-scrollbar-track {
-border-radius: 10px;
-width: 2px;
-border: 1px solid slateblue ; /* mediumpurple */
+	border-radius: 10px;
+	width: 2px;
+	border: 1px solid #4169E1 ; /* mediumpurple */
 }
 
 ::-webkit-scrollbar-thumb {
-background: rebeccapurple;
-border-radius: 10px;
+	background: rgb(80,90,160) ; 
+	border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-background: darkmagenta;
-
+	background: rgb(100,112,255) ;  
 }

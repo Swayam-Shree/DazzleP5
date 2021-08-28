@@ -32,6 +32,8 @@ function setup(){
   	gravity = down.copy().mult(0.1);
 
   	makeLogIn();
+	document.addEventListener("dragenter", () => {youtube_player.textbox_hover = true;youtube_player.textbox_tempval = youtube_player.textbox.value();});
+	document.addEventListener("dragend"  , () => {youtube_player.textbox_hover = true;youtube_player.textbox_tempval = youtube_player.textbox.value();});
 }
 
 function draw(){
@@ -42,12 +44,12 @@ function draw(){
 	fr += frameRate();if (frameCount % 50 == 0){averageFramerate = floor(fr/50);fr = 0;}
 	background(0);
 
+	player.update();
+
 	keybindDraw();
 	mapDraw();
 	shatterDraw();
 	enemyDraw();
-
-	player.update();
 
 	enemyTransparentDraw();
 }
@@ -74,9 +76,8 @@ function keyReleased(){
 }
 
 function windowResized(){
+	resizeCanvas(windowWidth, windowHeight);
 	if (!loggedIn)return;
-
-  	resizeCanvas(windowWidth, windowHeight);
     player.camera.perspective(player.fov, width/height, 1, 10000);
 }
 

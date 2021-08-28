@@ -124,7 +124,7 @@ function shatterDraw(){
 		let decal = shatterDecals[i];
 		decal.applyForce(gravity.copy().mult(0.5));
 		decal.work();
-		if (player.circleCulling(decal.pos)){
+		if (player.pointCulling(decal.pos)){
 			decal.display();
 		}
 		if (decal.dead){

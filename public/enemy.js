@@ -21,7 +21,6 @@ function enemyDraw(){
 	let len = enemies.length;
 	for (let i = 0; i < len; ++i){
 		enemies[i].work();
-		enemies[i].display();
 	}
 }
 
@@ -36,8 +35,8 @@ class Enemy{
 	constructor(id, name){
 	 	this.id = id;
 	  	this.name = name;
-	  	this.pos = createVector(0, 0, 0);
-	  	this.col = color(0);
+	  	this.pos = createVector(0, -300, 0);
+	  	this.col = color(100);
 	  	this.nameTag = new Billboard(0, 0, 0, nameTagWidth, nameTagHeight, nameTagTexture);
 	  	this.hoverChat = new Billboard(0, 0, 0, hoverChatWidth, hoverChatHeight, hoverChatTexture);
 
@@ -47,6 +46,9 @@ class Enemy{
 
 	  	this.orientation = 0;
 	  	this.orientationVector = createVector(-sin(this.orientation), 0, -cos(this.orientation));
+
+		this.kills = 0;
+		this.deaths = 0;
 	}
 }
 Enemy.prototype.work = function(){

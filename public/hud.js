@@ -16,13 +16,78 @@ function makeHud(){
 			// sketch.textFont(noobFont);
 			sketch.playerHealthbar = new sketch.Bar(player.maxHealth, 20, 50, sketch.radians(-4), player.name);
 			sketch.pages = [] ;
+			sketch.score_board = new Page(sketch, "Scoreboard");
+			sketch.score_board.work_graphics = function () {
+				this.graphics.clear();
+				this.graphics.textAlign(this.graphics.LEFT, this.graphics.BASELINE);
+				this.graphics.fill(255,0,69) ; 
+				this.graphics.textSize(100) ; 
+				this.graphics.text(player.kills, 0 , 100);
+				let w = this.graphics.textWidth(player.kills) ; 
+				this.graphics.textSize(40) ; 
+				this.graphics.text("/ " + player.deaths, w , 90) ;
+				this.graphics.push() ;
+				this.graphics.translate(this.w-80,80);
+				let h = hour();
+				if(h>7&&h<19){
+				this.graphics.circle( 0 , 0 , 69) ;
+				for( let i = 0 ; i < 7 ; ++i) {
+					this.graphics.push() ;
+					this.graphics.rotate(frameCount/100 + i*TWO_PI/7) ;
+					this.graphics.translate(60,0) ;  
+					Triangle(this.graphics,10) ; 
+					this.graphics.pop() ;
+				} } else {
+					this.graphics.rotate(-frameCount/300) ;
+					this.graphics.fill(140,140,154) ; 
+					Star(this.graphics,0, 0, 25, 60, 5);
+				}
+				this.graphics.pop() ;
+				this.graphics.fill(255); 
+				this.graphics.textAlign(this.graphics.RIGHT, this.graphics.TOP);
+				this.graphics.textSize(20) ; 
+				this.graphics.text(int(frameRate()) + '|' + averageFramerate, this.w , 0);
+				this.graphics.textSize(14) ; 
+				this.graphics.textAlign(this.graphics.RIGHT, this.graphics.BOTTOM);
+				// this.graphics.text((1+h%13) + ":" + minute() + (h>11?" pm":" am") , this.w , 165);
+				this.graphics.text(h === 0 ? 12 : h % 12 + ":" + minute() + (h > 11 ? " pm" : " am") , this.w , 165);
+				this.graphics.textSize(10) ; 
+				this.graphics.text("Server: North America" , this.w, this.h);
+				
+				this.graphics.textAlign(this.graphics.LEFT, this.graphics.BASELINE);
+				this.graphics.textSize(20) ; 
+				this.graphics.text( "Players :" , 10 , 170 ) ;
+				this.graphics.text( "K" , 250 , 170 ) ;
+				this.graphics.text( "D" , 300 , 170 ) ;
+				this.graphics.stroke(255) ; 
+				this.graphics.line( 10 , 175 , 320 , 175 ) ; 
+				this.graphics.line( this.w , 165 , this.w - 70 , 165 ) ; 
+				this.graphics.line( this.w , 169 , this.w - 50 , 169 ) ; 
+				this.graphics.noStroke() ; 
+				let e = [player,...enemies] ; 
+				e.sort((a,b)=>(a.kills > b.kills)) ;
+				for(let i = 0 ; i < e.length ; ++i) { 
+					this.graphics.fill( e[i].col ) ; 
+					this.graphics.text( e[i].name  , 10 , 220 + i*30) ; 
+					this.graphics.text( e[i].kills , 250 , 220 + i*30) ; 
+					this.graphics.text( e[i].deaths , 300 , 220 + i*30) ; 
+				} 
+			}
+			// sketch.score_board.setsize(width/2 , height - 400); 
+			sketch.score_board.scrollbar.work = ()=>{} ; 
+			sketch.score_board.w = sketch.width/2.5 ; 
+			sketch.score_board.graphics.resizeCanvas(sketch.score_board.w ,sketch.score_board.h) ;
+			
+			sketch.score_board.x = sketch.width/2 - sketch.score_board.w/2 ; 
+			sketch.score_board.y = 100;  
+			// sketch.stheta = 0; 
 			page_setup(sketch) ;
 			chatbox = new Chatbox(sketch, room, sketch.width - 510, sketch.height);
-			// youtube_player = new Thatbox(sketch, "youtube_api_iframe", 16 * 32, 9 * 32, "TV :)", 20, sketch.height - 10, -2.3);
-			// youtube_player.p.style("z-index","1");
+			youtube_player = new Thatbox(sketch, "youtube_api_iframe", 16 * 32, 9 * 32, "Youtube Player", 20, sketch.height - 10, -2.3);
+			youtube_player.p.style("z-index","1");
 			sketch.ui_buttons = [] ;
-			sketch.ui_buttons.push(new Button(sketch, "Options", 30, () => { for( let i = 0 ; i < sketch.pages.length ; i++ ) sketch.pages[i].on = false ; sketch.pages[0].on = true ; }, false, sketch.width - 370, 0, -6));
-			sketch.ui_buttons.push(new Button(sketch, "Credits", 40, () => { for( let i = 0 ; i < sketch.pages.length ; i++ ) sketch.pages[i].on = false ; sketch.pages[2].on = true ; }, false, sketch.width - 200 , 0, -6));
+			sketch.ui_buttons.push(new Button(sketch, "Options", 30, () => { for( let i = 0 ; i < sketch.pages.length ; i++ ) sketch.pages[i].on = false ; sketch.pages[0].on = true ; }, false, sketch.width , 0, -6));
+			sketch.ui_buttons.push(new Button(sketch, "Credits", 40, () => { for( let i = 0 ; i < sketch.pages.length ; i++ ) sketch.pages[i].on = false ; sketch.pages[2].on = true ; }, false, sketch.width , 0, -6));
 			color_picker = new ColorPicker(sketch) ; 
 			sketch.windowResized();
 			sketch.textAlign(sketch.CENTER, sketch.CENTER);
@@ -30,23 +95,31 @@ function makeHud(){
 		sketch.windowResized = function(){
 			color_picker.position( 20 , 70 , -4) ; 
 			sketch.resizeCanvas(sketch.windowWidth, sketch.windowHeight);
-			// youtube_player.position(20, sketch.height - 10) ;
-			// youtube_player.work_between() ;
+			youtube_player.position(20, sketch.height - 10) ;
+			youtube_player.work_between() ;
 			chatbox.position(sketch.width - 510, sketch.height);
 			chatbox.work_between();
 			for (let i = 0; i < sketch.pages.length; i++) sketch.pages[i].setsize();
-			sketch.ui_buttons[0].position( sketch.width - 370 , 0 ) ;
-			sketch.ui_buttons[1].position( sketch.width - 200 , 0 ) ;
+			sketch.ui_buttons[0].position( sketch.width - 320 , 0 ) ;
+			sketch.ui_buttons[1].position( sketch.width - 180 , 0 ) ;
+			sketch.score_board.w = sketch.width/2.5 ; 
+			sketch.score_board.graphics.resizeCanvas(sketch.score_board.w ,sketch.score_board.h) ;
+			
+			sketch.score_board.x = sketch.width/2 - sketch.score_board.w/2 ; 
+			sketch.score_board.y = 100;  
+
 		}
 		sketch.draw = function(){
 			sketch.clear();
+			display_killfeed() ;
+			sketch.rectMode(sketch.CORNER) ; 
 			sketch.fill(player.col);
 			sketch.stroke(0);
 			sketch.strokeWeight(1);
 			sketch.circle(sketch.width/2, sketch.height/2, 6);
 			sketch.noStroke();
 
-			sketch.fill(255, 0, 0);
+			sketch.fill(255, 0 , 69);
 			// sketch.textFont(legibleFont);
 			// sketch.textSize(30);
 			// sketch.textAlign(sketch.LEFT, sketch.CENTER);
@@ -54,17 +127,14 @@ function makeHud(){
 			sketch.playerHealthbar.purevalue = player.health;
 			sketch.playerHealthbar.work();
 			
-			sketch.textAlign(sketch.RIGHT, sketch.CENTER);
-			sketch.textSize(15) ; 
-			sketch.text(int(frameRate()) + '|' + averageFramerate, sketch.width , 50);
+			
 			// sketch.text('fCount : ' + frameCount, sketch.width - 300, 65);
-			sketch.text('planes : ' + planeDisplayCount, sketch.width, 95);
+			// sketch.text('planes : ' + planeDisplayCount, sketch.width, 95);
 			// sketch.text(color_picker.size_slider.value, sketch.width, 125);
 			// sketch.text('shatterDecals : ' + shatterDisplayCount, sketch.width - 300, 125);
 			// sketch.text('envDecals : ' + envDecalDisplayCount, sketch.width - 300, 155);
 			// sketch.text('roomName : ' + room, sketch.width, 185);
-			sketch.text('kills : ' + player.kills, sketch.width , 245);
-			sketch.text('deaths : ' + player.deaths, sketch.width , 275);
+			// sketch.text(player.kills + ' | ' + player.deaths + ' ', sketch.width , 245);
 
 
 			// if (displayHudHoverText){
@@ -73,13 +143,14 @@ function makeHud(){
 			// }
 			
 			for (let i = 0; i < sketch.pages.length; i++) if (sketch.pages[i].on) sketch.pages[i].work();
+			if( sketch.score_board.on ) sketch.score_board.work() ; 
 			// sketch.textFont(font);
 			sketch.textFont('sans-serif') ;
 			chatbox.work();
 			color_picker.work() ; 
-			// youtube_player.work();
-			// easter_egg_general(this) ;
-			// sketch.textFont(noobFont);
+			
+			youtube_player.work();
+			easter_egg_general(this) ;
 			for (let i = 0; i < sketch.ui_buttons.length; i++) {
 				sketch.ui_buttons[i].setm( translatePoint(
 					mouseX,
@@ -93,6 +164,7 @@ function makeHud(){
 		}
 		sketch.mousePressed = function() {
 			color_picker.clicked() ; 
+			youtube_player.clicked() ; 
 			for (let i = 0; i < sketch.pages.length; i++) if (sketch.pages[i].on) sketch.pages[i].clicked();
 			for (let i = 0; i < sketch.ui_buttons.length; i++) sketch.ui_buttons[i].clicked();
 		}
@@ -228,6 +300,7 @@ function makeLogIn(){
 	        sketch.resizeCanvas(sketch.windowWidth, sketch.windowHeight);	
 	    }
   		sketch.draw = function(){
+			if (disconnected){makeDisconnect(); sketch.remove(); return;}
             sketch.play_button.setm(translatePoint(mouseX,mouseY,sketch.play_button.x,sketch.play_button.y,sketch.play_button.theta));
             sketch.room_button.setm(translatePoint(mouseX,mouseY,sketch.room_button.x,sketch.room_button.y,sketch.room_button.theta));
         	sketch.background(10, 10, 14);
@@ -268,7 +341,7 @@ function makeLogIn(){
 			// }
 			let n = 0;
 			for (let roomName in sketch.roomList){
-				sketch.text(roomName + " " + sketch.roomList[roomName], 0, 30 + (sketch.textAscent() + 5) * n);
+				sketch.text(roomName + " - " + sketch.roomList[roomName], 0, 30 + (sketch.textAscent() + 5) * n);
 				++n;
 			}
 		  	sketch.play_button.work();
@@ -350,7 +423,7 @@ function makeLogIn(){
 	login_pointer = new p5(s);
 }
 
-function makeDisconnect() {
+function makeDisconnect(reason = "Error Value : 404 ( Server Disconnect ) ") {
 	let s = function (sketch){
 	  	sketch.setup = function(){
 			let canvasDC = sketch.createCanvas(sketch.windowWidth, sketch.windowHeight);
@@ -359,6 +432,7 @@ function makeDisconnect() {
 			for (let i = 0; i < sketch.width /4 ; i++) {
 			  	sketch.particlesDC.push(new sketch.Particle());
 			}
+			sketch.reason = reason ; 
 	  	};
 	  	sketch.draw = function(){
 			sketch.background(10,10,14);
@@ -377,7 +451,7 @@ function makeDisconnect() {
 			sketch.textSize(30);
 			sketch.text("Reload Site!", sketch.width / 2, sketch.height / 2 + 150);
 			sketch.textSize(15);
-			sketch.text("Error Value : 404 ( Server Disconnect ) ", sketch.width / 2, sketch.height / 2 + 195);
+			sketch.text(sketch.reason, sketch.width / 2, sketch.height / 2 + 195);
 	  	};
 	  	sketch.mousePressed = function(){
 		 	window.location.reload();

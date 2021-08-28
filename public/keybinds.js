@@ -3,9 +3,20 @@ let mouseLeft, mouseRight, mousebindPress, mousebindHold, mousebindRelease;
 
 function keybindSetup(){
 	keybindPress = {
-		32 : () => {player.jump();}, 						// space
-		16 : () => {player.sprinting = true;}, 				// shift
-		67 : () => {chatbox.on = !chatbox.on;}				// c
+		32  : () => {player.jump();}, 					     	  			  // space
+		16  : () => {player.sprinting = true;}, 				  			  // shift
+		86  : () => {chatbox.on = !chatbox.on;},                              // v
+		67  : () => {youtube_player.on = !youtube_player.on;},  			  // c
+		88  : () => {youtube_player_api.getPlayerState()===1?                 // x
+					 youtube_player_api.pauseVideo():
+					 youtube_player_api.playVideo();
+					},													      
+		90  : () => {youtube_player_api.isMuted()?                            // z
+					 youtube_player_api.unMute():
+					 youtube_player_api.mute();
+					},                                                       
+		84  : () => {player.textSpray(chatbox.textbox.value() || "hello");},  // t
+		192 : () => {hud_pointer.score_board.on = true;},         			  // `
 	}
 	keybindHold = {
 		38 : () => {player.moveForward();}, 				// up arrow
@@ -18,24 +29,30 @@ function keybindSetup(){
 		68 : () => {player.moveRight();},					// d
 	}
 	keybindRelease = {
-		16 : () => {player.sprinting = false;}, 			// shift
+		16  : () => {player.sprinting = false;}, 			// shift
+		192 : () => {hud_pointer.score_board.on = false;}   // `
 	}
 	mousebindPress = {
 		"left" : () => {
 			mouseLeft = true;
-			if (mouseX > width * 0.35 && mouseX < width * 0.65 && mouseY > height * 0.35 && mouseY < height * 0.65) requestPointerLock();
+			if (mouseX > width * 0.35 && mouseX < width * 0.65 && mouseY > height * 0.35 && mouseY < height * 0.65) {
+				requestPointerLock();
+				youtube_player.textbox_hover = false ; 
+			}
 			chatbox.clicked();
 		},
 		"right" : () => {
 			mouseRight = true;
-			player.clearPaint();
 		},
 	}
 	mousebindHold = {
 		"left" : () => {
-			player.shoot();
-			player.paint();
-		}
+			if (pointerLocked){
+				player.shoot();
+				player.paint();
+			}
+		},
+		"right" : () => {}
 	}
 	mousebindRelease = {
 		"left" : () => {
@@ -54,5 +71,5 @@ function keybindDraw(){
 		}
 	}
 	if (mouseLeft)mousebindHold["left"]();
-	//if (mouseRight)mousebindHold["right"]();
+	if (mouseRight)mousebindHold["right"]();
 }

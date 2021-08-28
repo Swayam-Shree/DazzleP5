@@ -1,3 +1,5 @@
+let planeGraphicResolutionScale = 1;
+
 class Plane{
   	constructor(x, y, z, wid, hei, axis, col){
         this.index = -1;
@@ -8,8 +10,9 @@ class Plane{
 	    this.col = col;
 		this.culled = false;
         this.used = false;
-        this.graphic = createGraphics(wid, hei);
+        this.graphic = createGraphics(wid * planeGraphicResolutionScale, hei * planeGraphicResolutionScale);
         this.graphic.background(this.col);
+        this.graphic.textAlign(this.graphic.CENTER, this.graphic.CENTER);
 
 	    if (this.axis == 'x'){
 			this.normal = right.copy();
@@ -67,8 +70,15 @@ Plane.prototype.paint = function(x, y, px, py, size, col){
     this.graphic.strokeWeight(size);
     this.graphic.line(px, py, x, y);
 }
-Plane.prototype.clear = function(){
-    this.graphic.background(this.col);
+Plane.prototype.text = function(x, y, text, fillCol, strokeCol, orientation){
+    this.used = true;
+    this.graphic.push();
+    this.graphic.fill(fillCol);
+    this.graphic.stroke(strokeCol);
+    this.graphic.translate(x, y)
+    this.graphic.rotate(-orientation);
+    this.graphic.text(text, 0, 0);
+    this.graphic.pop();
 }
 Plane.prototype.convertWorldCoords = function(pt){
     let mX, mY;
@@ -93,7 +103,9 @@ Plane.prototype.convertWorldCoords = function(pt){
 
 let mTemplate;
 let mMap = [];
- 
+let fireplace;
+let showFireplace = false;
+
 function mapSetup(){
   	mTemplate = [
         new Plane(0, 100, 0, 1000, 200, 'y', color(100)),
@@ -204,10 +216,17 @@ function mapSetup(){
 	makeMap(0, 0, -1000);
 	makeMap(-1000, 0, 0);
 
+    mMap.push(new Plane(300, 100, -500, 400, 800, 'y', color(random(10,60))));
+    mMap.push(new Plane(300, 100, 500, 400, 800, 'y', color(random(10,60))));
+    mMap.push(new Plane(-700, 100, -500, 400, 800, 'y', color(random(10,60))));
+    mMap.push(new Plane(-700, 100, 500, 400, 800, 'y', color(random(10,60))));
+
     let len = mMap.length;
     for (let i = 0; i < len; ++i){
         mMap[i].index = i;
     }
+
+    fireplace = new Fireplace(-150, 90, -1550 , 0);
 }
 
 function mapDraw(){
@@ -230,6 +249,8 @@ function mapDraw(){
         }
 	}
   	planeDisplayCount = x;
+
+    if (showFireplace) fireplace.work();
 }
 
 function makeMap(x, y, z){

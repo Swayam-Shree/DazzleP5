@@ -3,13 +3,12 @@ let host = "0.0.0.0";
 let express = require("express");
 let socketio = require("socket.io");
 let fs = require("fs");
-  
+
 let app = express();
 let server = app.listen(port, host);
 let io = socketio(server);
 console.log("server started");
  
-// app.use(express.static("public"));
 app.use(express.static('public', {
 	setHeaders : function(res, path){
 		res.set({
@@ -19,116 +18,190 @@ app.use(express.static('public', {
 	}
 })); 
 
-let roomSocketMap = {}; // maps socket id to room object
+if (!fs.existsSync("history")){
+    fs.mkdirSync("history");
+}
+
 let roomNameMap = {}; // maps room's name to room object
 let roomList = {} // map room's name to players in it
+let bannedIps = [];
 
 io.on("connection", (socket) => {
   	console.log(socket.id);
 
-	io.to(socket.id).emit("preLoginInit", Object.keys(roomSocketMap).length, roomList);
+	let c = 0; for (let key in roomList) c += roomList[key];
+	io.to(socket.id).emit("preLoginInit", c, roomList);
 
   	socket.on("login", (userName, roomName, callback) => {
+		let ip = getIp(socket);
+		if (bannedIps.includes(ip)) {
+			io.to(socket.id).emit("banned");;
+			socket.disconnect();
+			return;
+		}
+
 		socket.broadcast.emit("preLoginPlayerJoined", roomName);
 
 		if (userName.length > 16)userName = userName.substring(0, 16);
 		if (roomName.length > 16)roomName = roomName.substring(0, 16);
-  		let room;
+  		
   		if (roomName in roomNameMap){
-  			room = roomNameMap[roomName];
+			socket.room = roomNameMap[roomName];
+			if (socket.room.bannedIps.includes(ip)){
+				io.to(socket.id).emit("banned");;
+				socket.disconnect();
+				return;
+			}
   		}
   		else {
-  			room = new Room(roomName);
+			socket.room = new Room(roomName);
   		}	
-  		callback(socket.id, room.socketIds, room.users);
-  		room.addClient(socket, userName);
+  		callback(socket.id, socket.room.socketIds, socket.room.users, socket.room.ytLink, socket.room.djid);
+  		socket.room.addClient(socket, userName);
+		fs.readFile(`history/${socket.room.name}chathistory.txt`, {encoding : "utf8"}, (err, data) => {
+			socket.emit("chatHistory", data);
+		});
   	});
 
-  	socket.on("initPlayerProperties", (tosend, id, col, x, y, z, orientation) => {
-  		io.to(tosend).emit("initEnemyProperties", id, col, x, y, z, orientation);
+  	socket.on("initPlayerProperties", (tosend, id, col, x, y, z, orientation, kills, deaths) => {
+		if (checkSocket(socket)) return;
+  		io.to(tosend).emit("initEnemyProperties", id, col, x, y, z, orientation, kills, deaths);
   	});
 
   	socket.on("playerColorChange", (col) => {
-		let room = roomOf(socket);
-		if (room) socket.to(room.name).emit("enemyColorUpdate", socket.id, col);
+		if (checkSocket(socket)) return;
+		socket.to(socket.room.name).emit("enemyColorUpdate", socket.id, col);
   	});
   	socket.on("playerPositionChange", (x, y, z) => {
-		let room = roomOf(socket);
-		if (room) socket.to(room.name).emit("enemyPositionUpdate", socket.id, x, y, z);
+		if (checkSocket(socket)) return;
+		socket.to(socket.room.name).emit("enemyPositionUpdate", socket.id, x, y, z);
   	});
   	socket.on("playerOrientationChange", (orientation) => {
-		let room = roomOf(socket);
-		if (room) socket.to(room.name).emit("enemyOrientationUpdate", socket.id, orientation);
+		if (checkSocket(socket)) return;
+		socket.to(socket.room.name).emit("enemyOrientationUpdate", socket.id, orientation);
   	});
 
 	socket.on("enemyShot", (id, dmg) => {
+		if (checkSocket(socket)) return;
 		io.to(id).emit("playerShot", socket.id, dmg);
 	});
 	socket.on("playerKilled", (killerId) => {
-		io.to(killerId).emit("enemyKilled", socket.id);
+		if (checkSocket(socket)) return;
+		io.to(socket.room.name).emit("userKilled", killerId, socket.id);
 	});
 
 	socket.on("playerChat", (chat) => {
-		let room = roomOf(socket);
-		if (room) socket.to(room.name).emit("enemyChat", socket.id, chat);
+		if (checkSocket(socket)) return;
+		socket.to(socket.room.name).emit("enemyChat", socket.id, chat);
+		fs.write(socket.room.chatHistoryFd, chat + "\n", (err, bytes) => {});
 	});
 
-	socket.on("playerPaint", (index, x, y, px, py, size) => {
-		let room = roomOf(socket);
-		if (room) socket.to(room.name).emit("enemyPaint", socket.id, index, x, y, px, py, size);
+	socket.on("playerPaint", (index, x, y, px, py, size, col) => {
+		if (checkSocket(socket)) return;
+		socket.to(socket.room.name).emit("enemyPaint", socket.id, index, x, y, px, py, size);
+		fs.write(socket.room.paintHistoryFd, `p ${index} ${x} ${y} ${px} ${py} ${size} ${col}` + "\n", (err, bytes) => {});
+	});
+	socket.on("playerTextSpray", (index, x, y, text, fillCol, strokeCol, orientation) => {
+		if (checkSocket(socket)) return;
+		socket.to(socket.room.name).emit("enemyTextSpray", socket.id, index, x, y, text, strokeCol, orientation);
+		fs.write(socket.room.paintHistoryFd, `t ${index} ${x} ${y} ${text} ${fillCol} ${strokeCol} ${orientation}` + "\n",
+				(err, bytes) => {});
+	});
+
+	socket.on("sendVideo", (link) => {
+		if (checkSocket(socket)) return;
+		socket.room.ytLink = link;
+		socket.room.djid = socket.id;
+		socket.to(socket.room.name).emit("receiveVideo", socket.id, link);
+	});
+	socket.on("djtime", (time) => {
+		if (checkSocket(socket)) return;
+		socket.to(socket.room.name).emit("djtime", time);
 	});
 
 	socket.on("disconnecting", () => {
+		if (checkSocket(socket)) return;
 		io.to(socket.id).emit("disconnected");
 	});
 
   	socket.on("disconnect", () => {
-		if (socket.id in roomSocketMap){
-			let room = roomSocketMap[socket.id];
-			socket.broadcast.emit("preLoginPlayerLeft", room.name);
-
-			socket.to(room.name).emit("playerLeft", socket.id);
-			room.removeClient(socket.id);
-			delete roomSocketMap[socket.id];
-		}
+		if (checkSocket(socket)) return;
+		socket.broadcast.emit("preLoginPlayerLeft", socket.room.name);
+		socket.to(socket.room.name).emit("playerLeft", socket.id);
+		socket.room.removeClient(socket.id);
   	});
+
+	socket.on("ipBan", (password, id) => {
+		if (checkSocket(socket)) return;
+		if (password !== "bigtitsareshit") return;
+		let s = io.sockets.sockets.get(id);
+		bannedIps.push(getIp(s));
+		io.to(id).emit("banned");
+		s.disconnect();
+	});
+	socket.on("roomBan", (password, id, roomName) => {
+		if (checkSocket(socket)) return;
+		if (password !== "bigtitsareshit") return;
+		let s = io.sockets.sockets.get(id);
+		roomNameMap[roomName].bannedIps.push(getIp(s));
+		io.to(id).emit("banned");
+		s.disconnect();
+	});
 });
 
-function roomOf(socket){
-	if (socket.id in roomSocketMap) return roomSocketMap[socket.id];
-	else socket.emit("disconnected");
+function checkSocket(socket){
+	if (!socket.room) io.to(socket.id).emit("disconnected");
+	return !socket.room;
+}
+function getIp(socket){
+	return socket.handshake.headers['x-forwarded-for'] || socket.request.connection.remoteAddress
 }
 
 class Room{
 	constructor(name){
 		roomNameMap[name] = this;
 		roomList[name] = 0;
+		this.bannedIps = [];
 		this.name = name;
 		this.sockets = [];
 		this.socketIds = [];
 		this.users = [];
+		this.ytLink = "3G4cwFIh_Ns";
+		this.djid = "";
+		fs.open(`history/${name}chathistory.txt`, "a+", (err, fd) => {
+			this.chatHistoryFd = fd;
+		});
+		this.paintHistoryFd = fs.openSync(`history/${name}painthistory.txt`, "a+");
+		// this.paintHistoryWriteStream = fs.createWriteStream(`history/${name}painthistory.txt`);
 	}
-
-	addClient(socket, userName){
-		++roomList[this.name];
-		roomSocketMap[socket.id] = this;
-		socket.join(this.name);
-		socket.to(this.name).emit("playerJoined", socket.id, userName);
-		this.sockets.push(socket);
-		this.socketIds.push(socket.id);
-		this.users.push(userName);
+}
+Room.prototype.addClient = function(socket, userName){
+	++roomList[this.name];
+	socket.join(this.name);
+	socket.to(this.name).emit("playerJoined", socket.id, userName);
+	this.sockets.push(socket);
+	this.socketIds.push(socket.id);
+	this.users.push(userName);
+	fs.createReadStream(`history/${this.name}painthistory.txt`, {encoding : "utf8"}).on("data", (data) => {
+		io.to(socket.id).emit("paintHistory", data);
+	});
+}
+Room.prototype.removeClient = function(id){
+	--roomList[this.name];
+	let len = this.socketIds.length;
+	if (len === 1){
+		delete roomNameMap[this.name];
+		delete roomList[this.name];
+		fs.close(this.chatHistoryFd, (err) => {});
+		fs.close(this.paintHistoryFd, (err) => {});
+		return;
 	}
-
-	removeClient(id){
-		--roomList[this.name];
-		let len = this.socketIds.length;
-		for (let i = 0; i < len; ++i){
-			if (this.socketIds[i] == id){
-				this.socketIds.splice(i, 1);
-				this.sockets.splice(i, 1);
-				this.users.splice(i, 1);
-				break;
-			}
+	for (let i = 0; i < len; ++i){
+		if (this.socketIds[i] == id){
+			this.socketIds.splice(i, 1);
+			this.sockets.splice(i, 1);
+			this.users.splice(i, 1);
+			break;
 		}
 	}
 }

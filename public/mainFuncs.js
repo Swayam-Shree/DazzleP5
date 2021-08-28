@@ -10,7 +10,7 @@ function anglesOf(vector){
 function wordWrap(text, n){
   let t = "";
   for (let i = 0; i < text.length; ++i){
-      if (i > 0 && i % n == 0){
+      if (i > 0 && i % n === 0){
           t += "\n";
       }
       t += text[i];
@@ -18,7 +18,7 @@ function wordWrap(text, n){
   return t;
 }
 function distSq(a, b, c, x, y, z){
-    return y == undefined ? ((a - c) * (a - c)) + ((b - x) * (b - x)) : ((a - x) * (a - x)) + ((b - y) * (b - y)) + ((c - z) * (c - z));
+    return !y ? ((a - c) * (a - c)) + ((b - x) * (b - x)) : ((a - x) * (a - x)) + ((b - y) * (b - y)) + ((c - z) * (c - z));
 }
 function pointWithinScreen(v){
   return v.x > -width/2 && v.x < width/2 && v.y > -height/2 && v.y < height/2;

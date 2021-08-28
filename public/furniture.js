@@ -57,7 +57,6 @@ class Fireplace {
 
 	    this.texture_b = createGraphics(4*this.sz, 4*this.j);
   	}
-
   	addp(){
 	    this.p.push(
 	      	new Particle(
@@ -113,7 +112,6 @@ class Fireplace {
 	    this.texture_b.rect(0, 0, r, r);
 	    this.texture_b.pop() ;
   	}
-
   	display(){
       	push();
 		    translate(this.x, this.y, this.z);
@@ -183,7 +181,7 @@ class Fireplace {
         pop();
   	}
   	work(){
-		if (player.circleCulling(this.x, this.y, this.z)){
+		if (player.pointCulling(this.x, this.y, this.z)){
 		    this.texture_work()
 		    this.display();
 		}
@@ -202,28 +200,29 @@ class Fireplace {
 	    }
   	}
 }
+
 class Particle {
   	constructor(x = 0, y = 0, z = 0){
     	this.setit(x, y, z);
   	}
-  	setit(x, y, z){
-	    this.x = x;
-	    this.y = y;
-	    this.z = z;
-	    this.dx = random(-1, 1);
-	    this.dy = -random(1, 3);
-	    this.dz = random(-1, 1);
-	    if (random(1) < 0.93) [this.r, this.g, this.b, this.a] = [255, 0, 69, 255];
-	    else [this.r, this.g, this.b, this.a] = [69, 0, 255, 255];
-	    this.da = random(1, 3);
-	    this.d = random(3);
-	    this.dd = random(this.d / 30);
+}
+Particle.prototype.setit = function(x, y, z){
+	this.x = x;
+	this.y = y;
+	this.z = z;
+	this.dx = random(-1, 1);
+	this.dy = -random(1, 3);
+	this.dz = random(-1, 1);
+	if (random(1) < 0.93) [this.r, this.g, this.b, this.a] = [255, 0, 69, 255];
+	else [this.r, this.g, this.b, this.a] = [69, 0, 255, 255];
+	this.da = random(1, 3);
+	this.d = random(3);
+	this.dd = random(this.d / 30);
 
-	    if (random(1) < 0.6) {
-	      	this.dx /= 10;
-	      	this.dz /= 10;
-	    }
-  	}
+	if (random(1) < 0.6) {
+		this.dx /= 10;
+		this.dz /= 10;
+	}
 }
 Particle.prototype.move = function(){
   	this.x += this.dx;
@@ -242,7 +241,7 @@ Particle.prototype.work = function(){
   	this.a -= this.da;
   	this.d -= this.dd;
   	this.move();
-  	if (player.circleCulling(this.x, this.y, this.z)){
+  	if (player.pointCulling(this.x, this.y, this.z)){
   		this.display();
 	}
 };

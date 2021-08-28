@@ -167,6 +167,7 @@ class Chatbox {
 		this.notification_life = 0;
 		this.notification_goingup = false;
 		this.notification_count = 0;
+		this.unread_counter = 0 ; // for them
 	}
 	add_notification(s) {
 		if (!this.notification_messages.length) {
@@ -214,6 +215,7 @@ class Chatbox {
 		this.g.rect(0, -this.h, this.w, this.h);
 		this.g.rect(0, -this.h - this.hh - this.notification_y, this.w, this.hh);
 		this.g.fill(255, 0, 69);
+		this.g.textSize(15); 
 		this.g.textAlign(this.g.LEFT, this.g.BASELINE);
 		this.g.text(enemies.length + 1 + " online", 0,-this.h - this.hh - this.notification_y);
 		this.g.textSize(20);
@@ -230,9 +232,16 @@ class Chatbox {
 		this.g.textSize(this.textsizetop);
 		this.g.noStroke();
 		// fill (250 , 100* ( 1 + cos(frameCount/40) )/2 + 100)
-		this.g.fill(250);
+		this.g.fill(200);
 		this.g.text(this.s, 5, -this.h);
-
+		if( !this.on && this.unread_counter ) { 
+			this.g.fill( 255 , 0 , 69 );	
+			this.g.circle( this.w , -this.h-this.hh , this.hh/2) ;
+			this.g.fill(220) ;	
+			this.g.textSize(this.textsizetop*0.4) ; 
+			this.g.textAlign(this.g.CENTER, this.g.CENTER) ; 
+			this.g.text( this.unread_counter , this.w , -this.h-this.hh ) ; 
+		}
 		this.g.translate(this.bx, this.by);
 		this.bcolor = lerpColor(
       	this.bcolor,
@@ -273,7 +282,7 @@ class Chatbox {
 	}
 	work() {
 		this.notification_life++;
-		if (this.notification_life > 100) this.notification_goingup = false;
+		if (this.notification_life > 360) this.notification_goingup = false;
 		if (this.notification_goingup) {
 		this.notification_y = lerp(this.notification_y, this.hh * 1.3, 0.1);
 		// if(this.notification_y < this.hh*1.3 )  this.notification_y += 2 ;
@@ -297,6 +306,7 @@ class Chatbox {
 	clicked() {
 		if (this.inside_button()) {
 			this.on = !this.on;
+			if(this.on) this.unread_counter = 0 ; 
 		}
 	}
 	addChat(chat){
@@ -386,13 +396,18 @@ class ColorPicker {
 	}
 	clicked() {
 		this.size_slider.clicked();
-		//this.alpha_slider.clicked();
+		this.alpha_slider.clicked();
 	}
 	display() {
 		this.g.push();
 		this.g.translate(this.x, this.y);
 		this.g.rotate(this.theta);
-
+		this.g.noStroke() ; 
+		this.g.fill(200) ; 
+		this.g.textSize(10) ; 
+		this.g.textAlign(this.g.LEFT, this.g.BOTTOM ) ; 
+		this.g.text("Color:",0,1) ; 
+		this.g.text("Size",0,this.h+15);
 		this.g.stroke(255, this.a);
 		this.g.strokeWeight(2);
 
@@ -515,3 +530,109 @@ class Slider {
 		else this.color_button = lerpColor(this.color_button, color(255, 0, 69), 0.1);
 	}
 }
+
+function new_killfeed(s1,s2,c1=color(255,0,0),c2=color(0,0,255)) { 
+	if (side_notifications.length)
+    	side_notifications.push(new Notification(hud_pointer,
+			50 + side_notifications[side_notifications.length - 1].yseek,s1,s2,c1,c2));
+	else
+    	side_notifications.push(new Notification(hud_pointer,
+			150, s1,s2,c1,c2));
+}
+
+let side_notifications = [];
+
+function display_killfeed() { 
+	for (let i = side_notifications.length - 1; i > -1; i--) {
+		let s = side_notifications[i];
+		s.work();
+		if (s.haslife && s.life >= s.lifetime) {
+		  s.haslife = false;
+		  for (let j = side_notifications.length - 1; j > -1; j--)
+			side_notifications[j].yseek -= 50;
+		}
+		if (!s.haslife && s.y + s.h < 5) side_notifications.splice(i, 1);
+	  }
+}
+class Notification {
+	constructor(g,y = 50,s1="",s2="", c1 = color(255, 0, 0), c2 = color(0, 0, 250)) {
+	  this.g = g ;
+	  this.h = 40;
+	  this.x = (width * 5) / 6;
+	  this.y = -this.h;
+	  this.yseek = y;
+	  this.textsize = this.h * 0.7;
+	  this.life = 0;
+	  
+	  this.lifetime = 240;
+	  this.haslife = true;
+	  this.important = false;
+	  this.s1 = s1;
+	  this.s2 = s2;
+	  // this.s2 = "Jolyne"; // Limit it to 10? //12 seems good
+	  
+	  this.c1 = c1;
+	  this.c2 = c2;
+	  this.c = this.c1;
+	  this.cw = 0;
+	  this.g.textSize(this.textsize);
+	  let a1 = this.g.textWidth(this.s1);
+	  let a2 = this.g.textWidth(this.s2);
+	  this.w = a1 > a2 ? a1 : a2;
+	  this.w += 55; // further distance form the center
+	  this.w *= 2;
+	}
+	display() {
+	  this.g.rectMode(this.g.CENTER);
+	  if (this.important) {
+		this.g.stroke(255,0,69,150);
+		this.g.strokeWeight(2) ; 
+	  } else this.g.noStroke() ; 
+	  this.g.fill(30);
+	  this.g.rect(this.x, this.y, this.w, this.h);
+	  if (this.life > 30) {
+		this.cw = this.g.lerp(this.cw, this.w, 0.023);
+		this.g.noStroke();
+		this.g.rectMode(this.g.CORNERS);
+		this.g.fill(this.c);
+		this.g.rect(
+		  this.g.constrain(this.x - this.w / 2 + this.cw * 2, 0, this.x + this.w / 2),
+		  this.y - this.h / 2,
+		  this.g.constrain(this.x - this.w / 2 + this.cw, 0, this.x + this.w / 2),
+		  this.y + this.h / 2
+		);
+		this.g.rect(
+		  this.g.constrain(
+			this.x + this.w / 2 - this.cw * 2,
+			this.x - this.w / 2,
+			this.x + this.w / 2
+		  ),
+		  this.y - this.h / 2,
+		  this.g.constrain(
+			this.x + this.w / 2 - this.cw,
+			this.x - this.w / 2,
+			this.x + this.w / 2
+		  ),
+		  this.y + this.h / 2
+		);
+	  }
+  
+	  this.g.noStroke();
+	  this.g.fill(200);
+	  this.g.textSize(this.textsize);
+	  this.g.textAlign(this.g.LEFT, this.g.CENTER);
+	  this.g.text(this.s1, this.x - this.w / 2 + this.textsize / 5, this.y);
+	  this.g.textAlign(this.g.RIGHT, this.g.CENTER);
+  
+	  this.g.text(this.s2, this.x + this.w / 2 - this.textsize / 5, this.y);
+	  this.g.circle(this.x, this.y, 10);
+	}
+	work() {
+	  this.life++;
+	  if (this.haslife) this.y = this.g.lerp(this.y, this.yseek, 0.05);
+	  else this.y = this.g.lerp(this.y, -this.h, 0.05);
+	  this.c = this.g.lerpColor(this.c, this.c2, 0.008);
+	  this.c.setAlpha(150);
+	  this.display();
+	}
+  }
