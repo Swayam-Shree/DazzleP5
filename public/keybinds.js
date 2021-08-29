@@ -3,19 +3,20 @@ let mouseLeft, mouseRight, mousebindPress, mousebindHold, mousebindRelease;
 
 function keybindSetup(){
 	keybindPress = {
-		32  : () => {player.jump();}, 					     	  			  // space
-		16  : () => {player.sprinting = true;}, 				  			  // shift
-		86  : () => {chatbox.on = !chatbox.on;},                              // v
-		67  : () => {youtube_player.on = !youtube_player.on;},  			  // c
-		88  : () => {youtube_player_api.getPlayerState()===1?                 // x
+		32 : () => {player.jump();}, 					     	  			  // space
+		16 : () => {player.sprinting = true;}, 				  			  // shift
+		86 : () => {chatbox.on = !chatbox.on;},                              // v
+		67 : () => {youtube_player.on = !youtube_player.on;},  			  // c
+		88 : () => {youtube_player_api.getPlayerState()===1?                 // x
 					 youtube_player_api.pauseVideo():
 					 youtube_player_api.playVideo();
 					},													      
-		90  : () => {youtube_player_api.isMuted()?                            // z
+		90 : () => {youtube_player_api.isMuted()?                            // z
 					 youtube_player_api.unMute():
 					 youtube_player_api.mute();
 					},                                                       
-		84  : () => {player.textSpray(chatbox.textbox.value() || "hello");},  // t
+		84 : () => {player.textSpray(textspray_picker.value() || "hello");},  // t
+		71 : () => {if (easter_egg_var_image) player.imageSpray(easter_egg_var_image);},					  // g
 		192 : () => {hud_pointer.score_board.on = true;},         			  // `
 	}
 	keybindHold = {

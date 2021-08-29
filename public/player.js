@@ -76,12 +76,12 @@ Player.prototype.update = function(){
 	this.looking = makeVector(this.pos, this.facing).normalize();
 
 	if (this.health <= 0){
-		let enemy = enemySocketMap[this.lastShotBy];
-		new_killfeed(enemy.name, this.name, this.col, enemy.col);
-		side_notifications[side_notifications.length - 1].important = true ;
+		// let enemy = enemySocketMap[this.lastShotBy];
+		// new_killfeed(enemy.name, this.name, this.col, enemy.col);
+		// side_notifications[side_notifications.length - 1].important = true ;
 		socket.emit("playerKilled", this.lastShotBy);
 		// ++enemy.kills;
-		++this.deaths;
+		// ++this.deaths;
 		this.respawn();
 		this.health = 500;
 	}
@@ -315,6 +315,21 @@ Player.prototype.textSpray = function(text){
 		else{
 			socket.emit("playerTextSpray", lookingPlane.index, x, y, text, this.col.toString(), strokeCol.toString(), 0);
 			lookingPlane.text(x, y, text, this.col, strokeCol, 0);
+		}
+	}
+}
+Player.prototype.imageSpray = function(image){
+	let [lookingPlane, lookingPt] = this.lookingAt(mMap);
+	if (lookingPlane){
+		let [x, y] = lookingPlane.convertWorldCoords(lookingPt);
+		if (lookingPlane.axis === "y"){
+			// socket.emit("playerTextSpray", lookingPlane.index, x, y, text, this.col.toString(), strokeCol.toString(),
+			// 			this.orientation);
+			lookingPlane.image(x, y, image, this.orientation);
+		}
+		else{
+			// socket.emit("playerTextSpray", lookingPlane.index, x, y, text, this.col.toString(), strokeCol.toString(), 0);
+			lookingPlane.image(x, y, image, 0);
 		}
 	}
 }

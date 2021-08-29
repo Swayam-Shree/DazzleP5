@@ -25,10 +25,15 @@ function easter_egg_general(g) {
 }
 
 let easter_egg_var_image, easter_egg_var_image2,
-    easter_egg_var_dmcv = 0;
+    easter_egg_ricked, easter_egg_var_dmcv = 0;
 function easter_egg_refresh() {
+    easter_egg_ricked = false ; 
     easter_egg_var_image = null;
     easter_egg_var_image2 = null;
+    background_r = 5 ;
+	background_g = 5 ;
+	background_b = 10 ;
+	background_a = 255 ; 
 }
 
 let easter_egg_list_creator = {
@@ -36,12 +41,15 @@ let easter_egg_list_creator = {
     "glass animals": easter_egg_chairkun,
     "pewdiepie": easter_egg_pewds,
     "miek kobe": easter_egg_godhandgod,
+    "perldrop" : easter_egg_fumo,
 }
 let easter_egg_list_string = {
     "skyrim": easter_egg_skyrim,
     "sovngarde": easter_egg_real_skyrim,
     "touhou": easter_egg_marisa,
     "god hand": easter_egg_godhand,
+    "eurobeat": easter_egg_eurobeat,
+    "initial d": easter_egg_eurobeat,
 }
 
 let easter_egg_list_id = {
@@ -54,8 +62,27 @@ let easter_egg_list_id = {
     AElDJCkN0Wo: easter_egg_aigis,
     oAXACgxeUvo: easter_egg_kickstartmaheart,
     zPAalhYYeFc: easter_egg_red_orange_yellow,
+    dQw4w9WgXcQ: easter_egg_rick_rolled,
 };
 
+function easter_egg_eurobeat(g){ 
+    background_r = 200*(1+cos(frameCount/4.5))/2  ;
+    background_g = 200*(1+cos(frameCount/4.5))/2  ;
+    background_b = 220*(1+cos(frameCount/4.5))/2  ;
+}
+
+function easter_egg_rick_rolled(g) {
+    easter_egg_ricked = true ; 
+    if (easter_egg_var_image){}
+    else easter_egg_var_image = loadImage("assets/rickroll.jpg");
+    if (easter_egg_var_image2){easter_egg_var_image = easter_egg_var_image2.get();}
+    else {
+        easter_egg_var_image2 = createVideo("assets/rickroll.mp4");
+        easter_egg_var_image2.volume(0);
+        easter_egg_var_image2.loop() ; 
+        easter_egg_var_image2.hide() ; 
+    }
+}
 function easter_egg_red_orange_yellow(g) {
     youtube_player.hcolor = color(150, 30, 30);
     youtube_player.bcolor2 = color(200, 100, 30);
@@ -89,6 +116,14 @@ function easter_egg_marisa(g) {
             if (easter_egg_var_image)
                 this.g.image(easter_egg_var_image, this.w / 2 - 200, -this.h - 345, 633 / 1.5, 451 / 1.5);
             else easter_egg_var_image = loadImage("assets/marisa.png");
+        };
+}
+function easter_egg_fumo(g) {
+    if (!youtube_player.work_more)
+        youtube_player.work_more = function () {
+            if (easter_egg_var_image)
+                this.g.image(easter_egg_var_image, this.w / 2 - 200, -this.h - 400, 343 , 334);
+            else easter_egg_var_image = loadImage("assets/fumo.png");
         };
 }
 function easter_egg_godhandgod(g) {

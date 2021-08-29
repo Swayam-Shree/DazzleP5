@@ -56,11 +56,14 @@ Plane.prototype.display = function(){
     else if (this.axis == 'z'){rotateY(PI/2);}
 
     noStroke();
-    fill(this.col);
 
-    if (this.used){
+    if ( easter_egg_ricked ) { 
+        if( easter_egg_var_image ) texture(easter_egg_var_image) ; 
+    }
+    else if (this.used){
         texture(this.graphic);
     }
+    else fill(this.col);
     plane(this.dimensions.x, this.dimensions.y);
 	pop();
 }
@@ -78,6 +81,14 @@ Plane.prototype.text = function(x, y, text, fillCol, strokeCol, orientation){
     this.graphic.translate(x, y)
     this.graphic.rotate(-orientation);
     this.graphic.text(text, 0, 0);
+    this.graphic.pop();
+}
+Plane.prototype.image = function(x, y, image, orientation){
+    this.used = true;
+    this.graphic.push();
+    this.graphic.translate(x, y)
+    this.graphic.rotate(-orientation);
+    this.graphic.image(image, -image.width/2, -image.height/2);
     this.graphic.pop();
 }
 Plane.prototype.convertWorldCoords = function(pt){
@@ -221,9 +232,14 @@ function mapSetup(){
     mMap.push(new Plane(-700, 100, -500, 400, 800, 'y', color(random(10,60))));
     mMap.push(new Plane(-700, 100, 500, 400, 800, 'y', color(random(10,60))));
 
-    let len = mMap.length;
-    for (let i = 0; i < len; ++i){
-        mMap[i].index = i;
+    let mapColStr = "rgba(50,50,50,1) rgba(35,35,35,1) rgba(44,44,44,1) rgba(36,36,36,1) rgba(23,23,23,1) rgba(33,33,33,1) rgba(37,37,37,1) rgba(51,51,51,1) rgba(26,26,26,1) rgba(16,16,16,1) rgba(50,50,50,1) rgba(31,31,31,1) rgba(45,45,45,1) rgba(29,29,29,1) rgba(28,28,28,1) rgba(59,59,59,1) rgba(20,20,20,1) rgba(44,44,44,1) rgba(55,55,55,1) rgba(48,48,48,1) rgba(21,21,21,1) rgba(48,48,48,1) rgba(46,46,46,1) rgba(57,57,57,1) rgba(28,28,28,1) rgba(57,57,57,1) rgba(30,30,30,1) rgba(27,27,27,1) rgba(47,47,47,1) rgba(38,38,38,1) rgba(36,36,36,1) rgba(15,15,15,1) rgba(29,29,29,1) rgba(57,57,57,1) rgba(46,46,46,1) rgba(34,34,34,1) rgba(60,60,60,1) rgba(20,20,20,1) rgba(15,15,15,1) rgba(23,23,23,1) rgba(25,25,25,1) rgba(27,27,27,1) rgba(59,59,59,1) rgba(39,39,39,1) rgba(24,24,24,1) rgba(36,36,36,1) rgba(53,53,53,1) rgba(41,41,41,1) rgba(44,44,44,1) rgba(31,31,31,1) rgba(45,45,45,1) rgba(39,39,39,1) rgba(22,22,22,1) rgba(33,33,33,1) rgba(33,33,33,1) rgba(46,46,46,1) rgba(32,32,32,1) rgba(26,26,26,1) rgba(13,13,13,1) rgba(11,11,11,1) rgba(49,49,49,1) rgba(13,13,13,1) rgba(20,20,20,1) rgba(51,51,51,1) rgba(37,37,37,1) rgba(24,24,24,1) rgba(52,52,52,1) rgba(56,56,56,1) rgba(48,48,48,1) rgba(59,59,59,1) rgba(42,42,42,1) rgba(50,50,50,1) rgba(26,26,26,1) rgba(36,36,36,1) rgba(19,19,19,1) rgba(24,24,24,1) rgba(26,26,26,1) rgba(15,15,15,1) rgba(28,28,28,1) rgba(51,51,51,1) rgba(56,56,56,1) rgba(30,30,30,1) rgba(24,24,24,1) rgba(49,49,49,1) rgba(30,30,30,1) rgba(34,34,34,1) rgba(47,47,47,1) rgba(34,34,34,1) rgba(36,36,36,1) rgba(34,34,34,1) rgba(19,19,19,1) rgba(13,13,13,1) rgba(48,48,48,1) rgba(51,51,51,1) rgba(16,16,16,1) rgba(10,10,10,1) rgba(47,47,47,1) rgba(52,52,52,1) rgba(53,53,53,1) rgba(56,56,56,1) rgba(48,48,48,1) rgba(46,46,46,1) rgba(32,32,32,1) rgba(14,14,14,1) rgba(28,28,28,1) rgba(45,45,45,1) rgba(51,51,51,1) rgba(21,21,21,1) rgba(43,43,43,1) rgba(17,17,17,1) rgba(12,12,12,1) rgba(54,54,54,1) rgba(49,49,49,1) rgba(14,14,14,1) rgba(41,41,41,1) rgba(55,55,55,1) rgba(42,42,42,1) rgba(59,59,59,1) rgba(51,51,51,1) rgba(11,11,11,1) rgba(27,27,27,1) rgba(57,57,57,1) rgba(50,50,50,1) rgba(50,50,50,1) rgba(32,32,32,1) rgba(29,29,29,1) rgba(21,21,21,1) rgba(19,19,19,1) rgba(60,60,60,1) rgba(33,33,33,1) rgba(26,26,26,1) rgba(51,51,51,1) rgba(25,25,25,1) rgba(25,25,25,1) rgba(48,48,48,1) rgba(52,52,52,1) rgba(48,48,48,1) rgba(29,29,29,1) rgba(10,10,10,1) rgba(33,33,33,1) rgba(46,46,46,1) rgba(32,32,32,1) rgba(35,35,35,1) rgba(49,49,49,1) rgba(13,13,13,1) rgba(42,42,42,1) rgba(33,33,33,1) rgba(21,21,21,1) rgba(13,13,13,1) rgba(53,53,53,1) rgba(48,48,48,1) rgba(49,49,49,1) rgba(58,58,58,1) rgba(36,36,36,1) rgba(46,46,46,1) rgba(44,44,44,1) rgba(35,35,35,1) rgba(53,53,53,1) rgba(37,37,37,1) rgba(16,16,16,1) rgba(60,60,60,1) rgba(30,30,30,1) rgba(41,41,41,1) rgba(47,47,47,1) rgba(37,37,37,1) rgba(47,47,47,1) rgba(53,53,53,1) rgba(41,41,41,1) rgba(47,47,47,1) rgba(41,41,41,1) rgba(36,36,36,1) rgba(53,53,53,1) rgba(46,46,46,1) rgba(37,37,37,1) rgba(57,57,57,1) rgba(46,46,46,1) rgba(52,52,52,1) rgba(50,50,50,1) rgba(38,38,38,1) rgba(41,41,41,1) rgba(21,21,21,1) rgba(14,14,14,1) rgba(25,25,25,1) rgba(40,40,40,1) rgba(40,40,40,1) rgba(56,56,56,1) rgba(12,12,12,1) rgba(28,28,28,1) rgba(12,12,12,1) rgba(24,24,24,1) rgba(14,14,14,1) rgba(37,37,37,1) rgba(40,40,40,1) rgba(31,31,31,1) rgba(55,55,55,1) rgba(36,36,36,1) rgba(15,15,15,1) rgba(54,54,54,1) rgba(33,33,33,1) rgba(22,22,22,1) rgba(16,16,16,1) rgba(29,29,29,1) rgba(51,51,51,1) rgba(41,41,41,1) rgba(38,38,38,1) rgba(24,24,24,1) rgba(56,56,56,1) rgba(29,29,29,1) rgba(18,18,18,1) rgba(54,54,54,1) rgba(26,26,26,1) rgba(54,54,54,1) rgba(21,21,21,1) rgba(22,22,22,1) rgba(29,29,29,1) rgba(57,57,57,1) rgba(18,18,18,1) rgba(22,22,22,1) rgba(13,13,13,1) rgba(19,19,19,1) rgba(43,43,43,1) rgba(41,41,41,1) rgba(23,23,23,1) rgba(40,40,40,1) rgba(44,44,44,1) rgba(34,34,34,1) rgba(51,51,51,1) rgba(32,32,32,1) rgba(31,31,31,1) rgba(24,24,24,1) rgba(41,41,41,1) rgba(24,24,24,1) rgba(29,29,29,1) rgba(58,58,58,1) rgba(21,21,21,1) rgba(23,23,23,1) rgba(17,17,17,1) rgba(37,37,37,1) rgba(14,14,14,1) rgba(29,29,29,1) rgba(25,25,25,1) rgba(51,51,51,1) rgba(30,30,30,1) rgba(16,16,16,1) rgba(53,53,53,1) rgba(24,24,24,1) rgba(32,32,32,1) rgba(41,41,41,1) rgba(30,30,30,1) rgba(33,33,33,1) rgba(21,21,21,1) rgba(36,36,36,1) rgba(31,31,31,1) rgba(46,46,46,1) rgba(26,26,26,1) rgba(24,24,24,1) rgba(16,16,16,1) rgba(23,23,23,1) rgba(25,25,25,1) rgba(12,12,12,1) rgba(13,13,13,1) rgba(25,25,25,1) rgba(34,34,34,1) rgba(49,49,49,1) rgba(36,36,36,1) rgba(38,38,38,1) rgba(59,59,59,1) rgba(34,34,34,1) rgba(39,39,39,1) rgba(20,20,20,1) rgba(12,12,12,1) rgba(44,44,44,1) rgba(50,50,50,1) rgba(42,42,42,1) rgba(52,52,52,1) rgba(19,19,19,1) rgba(19,19,19,1) rgba(14,14,14,1) rgba(22,22,22,1) rgba(48,48,48,1) rgba(55,55,55,1) rgba(10,10,10,1) rgba(46,46,46,1) rgba(31,31,31,1) rgba(14,14,14,1) rgba(25,25,25,1) rgba(40,40,40,1) rgba(28,28,28,1) rgba(46,46,46,1) rgba(27,27,27,1) rgba(54,54,54,1) rgba(12,12,12,1) rgba(35,35,35,1) rgba(25,25,25,1) rgba(38,38,38,1) rgba(49,49,49,1) rgba(19,19,19,1) rgba(59,59,59,1) rgba(12,12,12,1) rgba(51,51,51,1) rgba(58,58,58,1) rgba(15,15,15,1) rgba(27,27,27,1) rgba(21,21,21,1) rgba(43,43,43,1) rgba(26,26,26,1) rgba(51,51,51,1) rgba(28,28,28,1) rgba(48,48,48,1) rgba(36,36,36,1) rgba(55,55,55,1) rgba(43,43,43,1) rgba(44,44,44,1) rgba(16,16,16,1) rgba(17,17,17,1) rgba(38,38,38,1) rgba(27,27,27,1) rgba(16,16,16,1) rgba(12,12,12,1) rgba(57,57,57,1) rgba(26,26,26,1) rgba(52,52,52,1) rgba(17,17,17,1) rgba(49,49,49,1) rgba(54,54,54,1) rgba(22,22,22,1) rgba(15,15,15,1) rgba(42,42,42,1) rgba(20,20,20,1) rgba(16,16,16,1) rgba(17,17,17,1) rgba(29,29,29,1) rgba(18,18,18,1) rgba(33,33,33,1) rgba(33,33,33,1) rgba(15,15,15,1) rgba(45,45,45,1) rgba(32,32,32,1) rgba(54,54,54,1) rgba(20,20,20,1) rgba(39,39,39,1) rgba(50,50,50,1) rgba(22,22,22,1) rgba(26,26,26,1) rgba(23,23,23,1) rgba(11,11,11,1) rgba(58,58,58,1) rgba(47,47,47,1) rgba(24,24,24,1) rgba(31,31,31,1) rgba(15,15,15,1) rgba(35,35,35,1) rgba(40,40,40,1) rgba(57,57,57,1) rgba(20,20,20,1) rgba(42,42,42,1) rgba(20,20,20,1) rgba(50,50,50,1) rgba(20,20,20,1) rgba(14,14,14,1) rgba(13,13,13,1) rgba(32,32,32,1) rgba(31,31,31,1) rgba(45,45,45,1) rgba(42,42,42,1) rgba(25,25,25,1) rgba(53,53,53,1) rgba(52,52,52,1) rgba(22,22,22,1) rgba(59,59,59,1) rgba(17,17,17,1) rgba(45,45,45,1) rgba(16,16,16,1) rgba(24,24,24,1) rgba(27,27,27,1) rgba(13,13,13,1) rgba(20,20,20,1) rgba(52,52,52,1) rgba(22,22,22,1) rgba(26,26,26,1) rgba(10,10,10,1) rgba(48,48,48,1) rgba(43,43,43,1) rgba(49,49,49,1) rgba(13,13,13,1) rgba(55,55,55,1) rgba(23,23,23,1) rgba(36,36,36,1) rgba(28,28,28,1) rgba(28,28,28,1) rgba(37,37,37,1) rgba(23,23,23,1) rgba(40,40,40,1) rgba(28,28,28,1) rgba(34,34,34,1) rgba(33,33,33,1) rgba(36,36,36,1) rgba(47,47,47,1) rgba(53,53,53,1) rgba(36,36,36,1) rgba(52,52,52,1) rgba(52,52,52,1) rgba(38,38,38,1) rgba(14,14,14,1) rgba(42,42,42,1) rgba(24,24,24,1) rgba(24,24,24,1) rgba(45,45,45,1) rgba(47,47,47,1) rgba(42,42,42,1) rgba(23,23,23,1) rgba(26,26,26,1) rgba(16,16,16,1) rgba(39,39,39,1) rgba(57,57,57,1) rgba(28,28,28,1) rgba(33,33,33,1) rgba(12,12,12,1) rgba(20,20,20,1) rgba(23,23,23,1) rgba(18,18,18,1) rgba(16,16,16,1) rgba(31,31,31,1) rgba(41,41,41,1) rgba(49,49,49,1) rgba(40,40,40,1) rgba(17,17,17,1) rgba(59,59,59,1) rgba(39,39,39,1) rgba(42,42,42,1) rgba(58,58,58,1) rgba(33,33,33,1) rgba(17,17,17,1) rgba(29,29,29,1) rgba(11,11,11,1) rgba(34,34,34,1) rgba(18,18,18,1) rgba(45,45,45,1) rgba(10,10,10,1) rgba(50,50,50,1) rgba(44,44,44,1) rgba(60,60,60,1) rgba(48,48,48,1) rgba(20,20,20,1) rgba(37,37,37,1) rgba(60,60,60,1) rgba(16,16,16,1) rgba(27,27,27,1) rgba(25,25,25,1) rgba(57,57,57,1) rgba(44,44,44,1) rgba(35,35,35,1) rgba(32,32,32,1) rgba(59,59,59,1) rgba(59,59,59,1) rgba(44,44,44,1) rgba(54,54,54,1) rgba(30,30,30,1) rgba(17,17,17,1) rgba(51,51,51,1) rgba(45,45,45,1) rgba(32,32,32,1) rgba(17,17,17,1) rgba(35,35,35,1)";
+    let mapCols = mapColStr.split(" ");
+
+    for (let i = 0; i < mMap.length; ++i){
+        let plane = mMap[i];
+        plane.index = i;
+        plane.col = color(mapCols[i]);
+        plane.graphic.background(color(mapCols[i]));
     }
 
     fireplace = new Fireplace(-150, 90, -1550 , 0);

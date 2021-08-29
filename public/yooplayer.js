@@ -1,12 +1,20 @@
 let djid = "";
+// let ytPlayerCooldown = 10, ytPlayerCooldownTracker = 0;
 
 function youtube_player_send() {
+    // let tDiff = Date.now() - ytPlayerCooldownTracker;
     if (keyCode === 13 && youtube_player.textbox.value() !== "") {
-        socket.emit("sendVideo", youtube_player.textbox.value());
-        youtube_player_playlink(youtube_player.textbox.value());
-        youtube_player.textbox.value("");
-        youtube_player.who_played = player.name;
-        djid = player.id;
+        // if (tDiff >= ytPlayerCooldown * 1000){//////////////////////////
+        //     ytPlayerCooldownTracker = Date.now();////////////////
+            socket.emit("sendVideo", youtube_player.textbox.value());
+            youtube_player_playlink(youtube_player.textbox.value());
+            youtube_player.textbox.value("");
+            youtube_player.who_played = player.name;
+            djid = player.id;
+        // }
+        // else{///////////////
+        //     chatbox.add_notification(`wait ${(ytPlayerCooldown - tDiff * 0.001) | 0} seconds before posting link`);//////////
+        // }///////////////
     }
 }
 function youtube_player_playlink(i) {
@@ -107,7 +115,7 @@ class Thatbox {
         youtube_player_api.setSize(w, h);
         this.p.show();
         this.id = "";
-        this.on = true;
+        this.on = false ;
         this.melta = this.on ? 1 : 0;
         this.textbox = createInput();
         this.textbox_height = 24;
@@ -126,6 +134,7 @@ class Thatbox {
         this.textbox.size((w * 4) / 5, 24);
         this.mx = this.my = 0;
         this.particles = [];
+        this.display_particles = true ; 
         this.dt = 0;
         this.position(x, y);
     }
@@ -139,6 +148,7 @@ class Thatbox {
         this.playedbycolor = color(25, 20, 20);
     }
     add_particle() {
+        if( this.display_particles ) 
         this.particles.push(
             new ytParticle(
                 this.g,

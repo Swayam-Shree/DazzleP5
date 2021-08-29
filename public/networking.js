@@ -8,9 +8,13 @@ function networkSetup(){
 	socket.on("disconnected", () => {
 		disconnected = true;
 	});
-	socket.on("banned",() =>{
+	socket.on("banned", () =>{
 		makeDisconnect("get banned lmao");
 		login_pointer.remove();	
+	});
+	socket.on("roomExistsNot", () => {
+		makeDisconnect("That room does not exist. Refresh to create a new room!");
+		login_pointer.remove();
 	});
 
 	socket.on("preLoginInit", (online, roomList) => {
@@ -29,26 +33,21 @@ function networkSetup(){
 		--login_pointer.roomList[roomName];
 		if (login_pointer.roomList[roomName] < 1) delete login_pointer.roomList[roomName];
 	});
-}
 
-function login(userName, roomName){
-	if (roomName == "") roomName = "Global Room";
-	if (userName == "") userName = "unnamed " + int(random(100))/10;
-	if (userName.length > 16)userName = userName.substring(0, 16);
-	if (roomName.length > 16)roomName = roomName.substring(0, 16);
-	room = roomName;
-	socket.emit("login", userName, roomName, (id, idList, userNameList, ytLink, djid_) => {
+	socket.on("loginFromLink", (id, userName, roomName, idList, userNameList, ytLink, djid_) => {
+		room = roomName.replace(" ", "_");
 		loggedIn = true;
 
 		player = new Player(id, userName);
 		makeHud();
-		youtube_player_playlink(ytLink);
-		djid = djid_;
 
 		mapSetup();
 		enemySetup();
 		keybindSetup();
-	    
+
+		youtube_player_playlink(ytLink);
+		djid = djid_;
+		
 		login_pointer.remove();
 
 		let len = idList.length;
@@ -57,8 +56,50 @@ function login(userName, roomName){
 			enemies.push(enemy); 
 			enemySocketMap[idList[i]] = enemy;
 		}
-	});
 
+		youtube_player.who_played = enemySocketMap[djid].name;
+
+		setSocketEvents();
+	});
+}
+
+function login(userName, roomName){
+	if (!loggedIn){
+		if (roomName == "") roomName = "Global Room";
+		if (userName == "") userName = "unnamed " + int(random(100))/10;
+		if (userName.length > 16)userName = userName.substring(0, 16);
+		if (roomName.length > 16)roomName = roomName.substring(0, 16);
+		room = roomName;
+		socket.emit("login", userName, roomName, (id, idList, userNameList, ytLink, djid_) => {
+			loggedIn = true;
+
+			player = new Player(id, userName);
+			makeHud();
+				
+			mapSetup();
+			enemySetup();
+			keybindSetup();
+
+			youtube_player_playlink(ytLink);
+			djid = djid_;
+				
+			login_pointer.remove();
+
+			let len = idList.length;
+			for (let i = 0; i < len; ++i){
+				let enemy = new Enemy(idList[i], userNameList[i])
+				enemies.push(enemy); 
+				enemySocketMap[idList[i]] = enemy;
+			}
+
+			if (enemySocketMap[djid]) youtube_player.who_played = enemySocketMap[djid].name;
+		});
+	}
+
+	setSocketEvents();
+}
+
+function setSocketEvents(){
 	socket.on("playerJoined", (id, name) => {
 		chatbox.add_notification(`${name} joined`);
 		let enemy = new Enemy(id, name)
@@ -109,7 +150,14 @@ function login(userName, roomName){
 			let enemy = enemySocketMap[deceasedId];
 			++enemy.deaths;
 			new_killfeed(player.name, enemy.name, enemy.col, player.col);
-		}	
+		}
+		else if (deceasedId === player.id){
+			++player.deaths;
+			let enemy = enemySocketMap[killerId];
+			++enemy.kills;
+			new_killfeed(enemy.name, player.name, player.col, enemy.col);
+			side_notifications[side_notifications.length - 1].important = true;
+		}
 		else{
 			let p1 = enemySocketMap[killerId], p2 = enemySocketMap[deceasedId];
 			++p1.kills;
@@ -124,11 +172,12 @@ function login(userName, roomName){
 		for (let i = 0; i < len; ++i){
 			chatbox.addChat(chats[i]);
 		}
+		chatbox.addChat("- You joined here.");
 	});
 	socket.on("enemyChat", (id, chat) => {
 		enemySocketMap[id].putTextOnHover(chat.substring(chat.indexOf(" >: ") + 4));
 		chatbox.addChat(chat);
-		if(!chatbox.on) ++chatbox.unread_counter ;
+		if(!chatbox.on) ++chatbox.unread_counter;
 	});
 
 	socket.on("paintHistory", (data) => {

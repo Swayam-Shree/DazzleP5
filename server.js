@@ -16,7 +16,21 @@ app.use(express.static('public', {
 			"X-Frame-Options" : "ALLOW-FROM https://www.youtube.com/"
 		});
 	}
-})); 
+}));
+
+let joinFromLinkMap = new Map();
+
+app.get("/joinroom/:roomName", (req, res) => {
+	let roomName = req.params.roomName;
+	let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+	joinFromLinkMap.set(ip, roomName);
+	if (process.env.port){
+		res.redirect("https://workingbuild.herokuapp.com");
+	}
+	else{
+		res.redirect("http://127.0.0.1:127");
+	}
+});
 
 if (!fs.existsSync("history")){
     fs.mkdirSync("history");
@@ -26,8 +40,45 @@ let roomNameMap = {}; // maps room's name to room object
 let roomList = {} // map room's name to players in it
 let bannedIps = [];
 
+function checkForLinkJoin(socket){
+	let ip = getIp(socket);
+	if (bannedIps.includes(ip)) {
+		io.to(socket.id).emit("banned"); 
+		socket.disconnect();
+		return;
+	}
+
+	let roomName = joinFromLinkMap.get(ip); 
+	if (!roomName) return;
+	
+	if (roomName in roomNameMap){
+		socket.room = roomNameMap[roomName];
+		if (socket.room.bannedIps.includes(ip)){
+			io.to(socket.id).emit("banned");;
+			socket.disconnect();
+			return;
+		}
+
+		let userName = "unnamed " + randInt(0, 100);
+
+		socket.emit("loginFromLink", socket.id, userName, roomName, socket.room.socketIds, socket.room.users,
+					socket.room.ytLink, socket.room.djid);
+
+		socket.room.addClient(socket, userName);
+		fs.readFile(`history/${socket.room.name}chathistory.txt`, {encoding : "utf8"}, (err, data) => {
+			socket.emit("chatHistory", data);
+		});
+	}
+	else {
+		io.to(socket.id).emit("roomExistsNot");
+	}
+	joinFromLinkMap.delete(ip);
+}
+
 io.on("connection", (socket) => {
   	console.log(socket.id);
+
+	checkForLinkJoin(socket);
 
 	let c = 0; for (let key in roomList) c += roomList[key];
 	io.to(socket.id).emit("preLoginInit", c, roomList);
@@ -35,7 +86,7 @@ io.on("connection", (socket) => {
   	socket.on("login", (userName, roomName, callback) => {
 		let ip = getIp(socket);
 		if (bannedIps.includes(ip)) {
-			io.to(socket.id).emit("banned");;
+			io.to(socket.id).emit("banned"); 
 			socket.disconnect();
 			return;
 		}
@@ -44,6 +95,7 @@ io.on("connection", (socket) => {
 
 		if (userName.length > 16)userName = userName.substring(0, 16);
 		if (roomName.length > 16)roomName = roomName.substring(0, 16);
+		roomName.replace(" ", "_");
   		
   		if (roomName in roomNameMap){
 			socket.room = roomNameMap[roomName];
@@ -108,7 +160,7 @@ io.on("connection", (socket) => {
 				(err, bytes) => {});
 	});
 
-	socket.on("sendVideo", (link) => {
+	socket.on("sendVideo", (link) => { 	
 		if (checkSocket(socket)) return;
 		socket.room.ytLink = link;
 		socket.room.djid = socket.id;
@@ -156,6 +208,11 @@ function checkSocket(socket){
 function getIp(socket){
 	return socket.handshake.headers['x-forwarded-for'] || socket.request.connection.remoteAddress
 }
+function randInt(min, max){
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min) + min);
+}
 
 class Room{
 	constructor(name){
@@ -168,11 +225,11 @@ class Room{
 		this.users = [];
 		this.ytLink = "3G4cwFIh_Ns";
 		this.djid = "";
+
 		fs.open(`history/${name}chathistory.txt`, "a+", (err, fd) => {
 			this.chatHistoryFd = fd;
 		});
 		this.paintHistoryFd = fs.openSync(`history/${name}painthistory.txt`, "a+");
-		// this.paintHistoryWriteStream = fs.createWriteStream(`history/${name}painthistory.txt`);
 	}
 }
 Room.prototype.addClient = function(socket, userName){
@@ -205,3 +262,5 @@ Room.prototype.removeClient = function(id){
 		}
 	}
 }
+
+function random(min,max) { return Math.random() * (max - min) + min; }

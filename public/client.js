@@ -15,6 +15,8 @@ let loggedIn = false;
 let tabFocused = true;
 
 let font, openSans, noobFont;
+let background_r, background_g, background_b, background_a;
+
 function preload(){
   	font = loadFont('assets/font.ttf');
   	openSans = loadFont('assets/OpenSans.ttf');
@@ -24,16 +26,16 @@ function preload(){
 function setup(){
 	worldCanvas = createCanvas(windowWidth, windowHeight, WEBGL);
 	worldCanvas.style("z-index", "-1");
-
+	
 	frameRate(60);
 	networkSetup();
-
 	origin = createVector(0, 0, 0);left = createVector(-1, 0, 0);right = createVector(1, 0, 0);up = createVector(0, -1, 0);down = createVector(0, 1, 0);front = createVector(0, 0, -1);back = createVector(0, 0, 1);
   	gravity = down.copy().mult(0.1);
 
   	makeLogIn();
 	document.addEventListener("dragenter", () => {youtube_player.textbox_hover = true;youtube_player.textbox_tempval = youtube_player.textbox.value();});
 	document.addEventListener("dragend"  , () => {youtube_player.textbox_hover = true;youtube_player.textbox_tempval = youtube_player.textbox.value();});
+	easter_egg_refresh() ; 
 }
 
 function draw(){
@@ -42,7 +44,7 @@ function draw(){
 
 	pointerLocked = document.pointerLockElement === canvas || document.mozPointerLockElement === canvas;
 	fr += frameRate();if (frameCount % 50 == 0){averageFramerate = floor(fr/50);fr = 0;}
-	background(0);
+	background(background_r, background_g, background_b, background_a); 
 
 	player.update();
 
