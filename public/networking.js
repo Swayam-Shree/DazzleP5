@@ -214,6 +214,13 @@ function setSocketEvents(){
 		y *= planeGraphicResolutionScale;
 		mMap[index].text(x, y, text, enemySocketMap[id].col, color(strokeCol), orientation);
 	});
+	socket.on("enemyImageSpray", (index, x, y, orientation) => {
+		if (easter_egg_var_image){
+			x *= planeGraphicResolutionScale;
+			y *= planeGraphicResolutionScale;
+			mMap[index].image(x, y, easter_egg_var_image, orientation);
+		}
+	});
 
 	socket.on("receiveVideo", (id, link) => {
 		djid = id;

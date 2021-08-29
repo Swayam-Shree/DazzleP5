@@ -159,6 +159,10 @@ io.on("connection", (socket) => {
 		fs.write(socket.room.paintHistoryFd, `t ${index} ${x} ${y} ${text} ${fillCol} ${strokeCol} ${orientation}` + "\n",
 				(err, bytes) => {});
 	});
+	socket.on("playerImageSpray", (index, x, y, orientation) => {
+		if (checkSocket(socket)) return;
+		socket.to(socket.room.name).emit("enemyImageSpray", index, x, y, orientation);
+	});
 
 	socket.on("sendVideo", (link) => { 	
 		if (checkSocket(socket)) return;

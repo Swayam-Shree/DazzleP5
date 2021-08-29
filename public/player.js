@@ -323,12 +323,11 @@ Player.prototype.imageSpray = function(image){
 	if (lookingPlane){
 		let [x, y] = lookingPlane.convertWorldCoords(lookingPt);
 		if (lookingPlane.axis === "y"){
-			// socket.emit("playerTextSpray", lookingPlane.index, x, y, text, this.col.toString(), strokeCol.toString(),
-			// 			this.orientation);
+			socket.emit("playerImageSpray", lookingPlane.index, x, y, this.orientation);
 			lookingPlane.image(x, y, image, this.orientation);
 		}
 		else{
-			// socket.emit("playerTextSpray", lookingPlane.index, x, y, text, this.col.toString(), strokeCol.toString(), 0);
+			socket.emit("playerImageSpray", lookingPlane.index, x, y, 0);
 			lookingPlane.image(x, y, image, 0);
 		}
 	}

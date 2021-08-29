@@ -92,7 +92,7 @@ function makeHud() {
 			sketch.ui_buttons.push(new Button(sketch, "Credits", 40, () => { for (let i = 0; i < sketch.pages.length; i++) sketch.pages[i].on = false; sketch.pages[1].on = true; }, false, sketch.width, 0, -6));
 			sketch.ui_buttons.push(new Button(sketch, "Controls", 30, () => { for (let i = 0; i < sketch.pages.length; i++) sketch.pages[i].on = false; sketch.pages[2].on = true; }, false, sketch.width, 0, -6));
 			sketch.ui_buttons.push(new Button(sketch, "Share", 30, () => { navigator.clipboard.writeText("https://workingbuild.herokuapp.com/joinroom/"+room.replace(" ","_")); chatbox.add_notification("Room URL copied to clipboard!"); }, false, sketch.width, 0, -6));
-			sketch.pages[2].on = true;
+			// sketch.pages[2].on = true;
 			textspray_picker = createInput() ; 
 			// this.textbox.attribute("onkeypress", "chatbox_send();");
 			textspray_picker.style("transform-origin", "0% 0%");
