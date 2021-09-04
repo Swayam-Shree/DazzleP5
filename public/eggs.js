@@ -350,10 +350,10 @@ function easter_egg_dmcvnoro(g) {
         youtube_player_api.getCurrentTime() < 48.85
     ) {
         easter_egg_var_dmcv = 2000;
-        fill(41, 85, 255);
-        textSize(250);
-        textAlign(CENTER, CENTER);
-        text("FUCK YOU", g.width / 2, g.height / 2);
+        g.fill(41, 85, 255);
+        g.textSize(250);
+        g.textAlign(CENTER, CENTER);
+        g.text("FUCK YOU", g.width / 2, g.height / 2);
     }
 }
 function easter_egg_dmcv(g) {

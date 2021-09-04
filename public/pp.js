@@ -37,14 +37,14 @@ function page_setup(g) {
 		)
 	);
 	let x, t;
-	x = new Option_picker(page_options.graphics, 350, 300);
+	x = new Option_picker(page_options.graphics, 350, 350);
 	x.add_item("Low");
 	x.add_item("Medium");
 	x.add_item("High");
 	x.add_item("Ultra");
 	page_options.contents.push(x);
 
-	x = new Option_picker(page_options.graphics, 350, 400);
+	x = new Option_picker(page_options.graphics, 350, 500);
 	t = ["ADD", "DARKEST", "LIGHTEST", "DIFFERENCE", "EXCLUSION", "MULTIPLY", "SCREEN", "REPLACE", "REMOVE", "SUBTRACT"];
 	for (let i = 0; i < t.length; ++i) {
 		x.add_item(t[i]);
@@ -57,6 +57,11 @@ function page_setup(g) {
 		}
 	}
 	page_options.contents.push(x);
+
+	page_options.contents.push(new Slider(page_options.graphics , 0.5 , 4 , 2 , 150, 280, 310 , -PI/20,2,4,()=>{
+		player.sensitivity = hud_pointer.pages[0].contents[5].value/1000 ;
+	}));
+
 	page_options.graphics_static = createGraphics(1000, 200);
 	page_options.graphics_static.noStroke();
 
@@ -110,10 +115,11 @@ function page_setup(g) {
 		this.graphics.fill(200);
 		this.graphics.text("Youtube Player Particles :", 50, 200);
 		this.graphics.text("RTX :", 50, 250);
-		this.graphics.text("Render distance :", 50, 300);
-		this.graphics.text("Blend mode :", 50, 400);
+		this.graphics.text("Mouse Sensitivity :", 50, 300);
+		this.graphics.text("Render distance :", 50, 350);
+		this.graphics.text("Blend mode :", 50, 500);
 		this.graphics.fill(255,0,69) ; 
-		this.graphics.text("< Experimental >", 30, 360);
+		this.graphics.text("< Experimental >", 30, 460);
 		this.graphics.pop();
 	};
 	page_controls = new Page(g, "Controls");
@@ -130,7 +136,8 @@ function page_setup(g) {
 		let a = ["Move Forward" ,"Move Left","Move Back","Move Right","Paint/Shoot","Scoreboard","Sprint","Jump",
 		"Spray Text","Spray Image","Toggle Chatbox","Toggle Youtube Player","Youtube Pause/Play","Youtube Mute/Unmute"];
 		let b = [ "W or ⬆","A or ⬅", "S or ⬇ ","D or ➡","Left Click","`", "Shift","Space",
-		"T","G","V","C","X","Z"];
+		"T                  <   \"Hello\" by default, change it in the T button below the color picker",
+		"G                  <   Removed the Image URL support due to spam, only works when certain youtube video is played.","V","C","X","Z"];
 		let i ;
 		for(i = 0 ; i < a.length ; ++i){ 
 			this.graphics.text(a[i], 20, 300 + 40*i); 
@@ -236,10 +243,10 @@ this.graphics.text("You can have a look at the source code with  :  F12", 20, i*
 		this.graphics.text("Please show the love!", 0, 600);
 		this.graphics.fill(255, 0, 255);
 		this.graphics.textSize(40);	
-		this.graphics.text("Lilack - helping out with bug fixes!" , 10 , 680) ; 
+		// this.graphics.text("Lilack - helping out with bug fixes!" , 10 , 680) ; 
 		this.graphics.fill(255, 0, 69);
 		this.graphics.textSize(20);	
-		this.graphics.text("Ontropy - suggestions for video easter eggs :v" , 10 , 720) ; 
+		// this.graphics.text("Ontropy - suggestions for video easter eggs :v" , 10 , 720) ; 
 		this.graphics.fill(150, 0, 255);
 		this.graphics.textSize(30);	
 		this.graphics.translate(50,800) ; 
@@ -575,24 +582,7 @@ function draw_static(g) {
 
 	// text("Nothing here", width / 2, height / 2);
 }
-function Triangle(g, a) {
-	let b = 0.866 * a;
-	g.triangle(0, -b, -a, b, a, b);
-}
-function Star(g, x, y, radius1, radius2, npoints) {
-	let angle = TWO_PI / npoints;
-	let halfAngle = angle / 2.0;
-	g.beginShape();
-	for (let a = 0; a < TWO_PI; a += angle) {
-		let sx = x + cos(a) * radius2;
-		let sy = y + sin(a) * radius2;
-		g.vertex(sx, sy);
-		sx = x + cos(a + halfAngle) * radius1;
-		sy = y + sin(a + halfAngle) * radius1;
-		g.vertex(sx, sy);
-	}
-	g.endShape(CLOSE);
-}
+
 class Option_picker {
 	constructor(g, x, y, theta = 0) {
 		this.g = g;

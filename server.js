@@ -6,7 +6,7 @@ let fs = require("fs");
 
 let app = express();
 let server = app.listen(port, host);
-let io = socketio(server);
+let io = socketio(server, {pingTimeout : 120000, pingInterval : 25000});
 console.log("server started");
  
 app.use(express.static('public', {
@@ -39,6 +39,7 @@ if (!fs.existsSync("history")){
 let roomNameMap = {}; // maps room's name to room object
 let roomList = {} // map room's name to players in it
 let bannedIps = [];
+let fingerprintTimeMap = {};
 
 function checkForLinkJoin(socket){
 	let ip = getIp(socket);
@@ -60,6 +61,8 @@ function checkForLinkJoin(socket){
 		}
 
 		let userName = "unnamed " + randInt(0, 100);
+
+		socket.broadcast.emit("preLoginPlayerJoined", roomName);
 
 		socket.emit("loginFromLink", socket.id, userName, roomName, socket.room.socketIds, socket.room.users,
 					socket.room.ytLink, socket.room.djid);
@@ -98,6 +101,7 @@ io.on("connection", (socket) => {
 		roomName.replace(" ", "_");
   		
   		if (roomName in roomNameMap){
+			
 			socket.room = roomNameMap[roomName];
 			if (socket.room.bannedIps.includes(ip)){
 				io.to(socket.id).emit("banned");;
@@ -109,6 +113,7 @@ io.on("connection", (socket) => {
 			socket.room = new Room(roomName);
   		}	
   		callback(socket.id, socket.room.socketIds, socket.room.users, socket.room.ytLink, socket.room.djid);
+		socket.userName = userName;
   		socket.room.addClient(socket, userName);
 		fs.readFile(`history/${socket.room.name}chathistory.txt`, {encoding : "utf8"}, (err, data) => {
 			socket.emit("chatHistory", data);
@@ -144,6 +149,7 @@ io.on("connection", (socket) => {
 
 	socket.on("playerChat", (chat) => {
 		if (checkSocket(socket)) return;
+		chat = chat.substring(0, 100);
 		socket.to(socket.room.name).emit("enemyChat", socket.id, chat);
 		fs.write(socket.room.chatHistoryFd, chat + "\n", (err, bytes) => {});
 	});
@@ -151,13 +157,21 @@ io.on("connection", (socket) => {
 	socket.on("playerPaint", (index, x, y, px, py, size, col) => {
 		if (checkSocket(socket)) return;
 		socket.to(socket.room.name).emit("enemyPaint", socket.id, index, x, y, px, py, size);
-		fs.write(socket.room.paintHistoryFd, `p ${index} ${x} ${y} ${px} ${py} ${size} ${col}` + "\n", (err, bytes) => {});
+		let command = `p ${index} ${x} ${y} ${px} ${py} ${size} ${col}` + "\n";
+		if (socket.room.prevPaintCommand !== command){
+			fs.write(socket.room.paintHistoryFd, command, (err, bytes) => {});
+			socket.room.prevPaintCommand = command;
+		}
 	});
 	socket.on("playerTextSpray", (index, x, y, text, fillCol, strokeCol, orientation) => {
 		if (checkSocket(socket)) return;
+		text = text.substring(0, 100);
 		socket.to(socket.room.name).emit("enemyTextSpray", socket.id, index, x, y, text, strokeCol, orientation);
-		fs.write(socket.room.paintHistoryFd, `t ${index} ${x} ${y} ${text} ${fillCol} ${strokeCol} ${orientation}` + "\n",
-				(err, bytes) => {});
+		let command = `t ${index} ${x} ${y} ${text} ${fillCol} ${strokeCol} ${orientation}` + "\n";
+		if (socket.room.prevTextSprayCommand !== command){
+			fs.write(socket.room.paintHistoryFd, command, (err, bytes) => {});
+			socket.room.prevTextSprayCommand = command;
+		}
 	});
 	socket.on("playerImageSpray", (index, x, y, orientation) => {
 		if (checkSocket(socket)) return;
@@ -180,7 +194,8 @@ io.on("connection", (socket) => {
 		io.to(socket.id).emit("disconnected");
 	});
 
-  	socket.on("disconnect", () => {
+  	socket.on("disconnect", (err) => {
+		console.log(err);
 		if (checkSocket(socket)) return;
 		socket.broadcast.emit("preLoginPlayerLeft", socket.room.name);
 		socket.to(socket.room.name).emit("playerLeft", socket.id);
@@ -243,7 +258,7 @@ Room.prototype.addClient = function(socket, userName){
 	this.sockets.push(socket);
 	this.socketIds.push(socket.id);
 	this.users.push(userName);
-	fs.createReadStream(`history/${this.name}painthistory.txt`, {encoding : "utf8"}).on("data", (data) => {
+	fs.createReadStream(`history/${this.name}painthistory.txt`, {encoding : "utf8", highWaterMark : 64 * 1024}).on("data", (data) => {
 		io.to(socket.id).emit("paintHistory", data);
 	});
 }

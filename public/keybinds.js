@@ -37,6 +37,7 @@ function keybindSetup(){
 		"left" : () => {
 			mouseLeft = true;
 			if (mouseX > width * 0.35 && mouseX < width * 0.65 && mouseY > height * 0.35 && mouseY < height * 0.65) {
+				if( hud_pointer.pages[0].on ) return ; 
 				requestPointerLock();
 				youtube_player.textbox_hover = false ; 
 			}

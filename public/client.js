@@ -1,3 +1,4 @@
+/// <reference path="../node_modules/@types/p5/global.d.ts" />
 p5.disableFriendlyErrors = true;
 
 let worldCanvas;
@@ -17,6 +18,11 @@ let tabFocused = true;
 let font, openSans, noobFont;
 let background_r, background_g, background_b, background_a;
 
+// let fingerprint = FingerprintJS.load();
+// fingerprint
+// .then(fp => fp.get())
+// .then(result => fingerprint = result.visitorId);
+
 function preload(){
   	font = loadFont('assets/font.ttf');
   	openSans = loadFont('assets/OpenSans.ttf');
@@ -35,7 +41,9 @@ function setup(){
   	makeLogIn();
 	document.addEventListener("dragenter", () => {youtube_player.textbox_hover = true;youtube_player.textbox_tempval = youtube_player.textbox.value();});
 	document.addEventListener("dragend"  , () => {youtube_player.textbox_hover = true;youtube_player.textbox_tempval = youtube_player.textbox.value();});
-	easter_egg_refresh() ; 
+	easter_egg_refresh();
+
+	dustSetup();
 }
 
 function draw(){
@@ -54,6 +62,7 @@ function draw(){
 	enemyDraw();
 
 	enemyTransparentDraw();
+	// dustWork();
 }
 
 function mousePressed(){

@@ -4,6 +4,8 @@ let tPaintData;
 
 function networkSetup(){
 	socket = io();
+	
+	// socket.emit("setFingerprint", fingerprint);
 
 	socket.on("disconnected", () => {
 		disconnected = true;
@@ -139,7 +141,8 @@ function setSocketEvents(){
 		enemy.deaths = deaths; 
 	});
 
-	socket.on("playerShot", (shooterId, dmg) => {
+	socket.on("playerShot", (shooterId, dmg) => { 
+		damage_indicators.push(new DamageIndicator(hud_pointer,enemySocketMap[shooterId].pos.copy(),red(enemySocketMap[shooterId].col),green(enemySocketMap[shooterId].col),blue(enemySocketMap[shooterId].col)));
 		player.lastShotBy = shooterId;
 		player.health -= dmg;
 		shatter(player.pos, 4, 2.5, -0.02, 2, player.col);
@@ -172,7 +175,7 @@ function setSocketEvents(){
 		for (let i = 0; i < len; ++i){
 			chatbox.addChat(chats[i]);
 		}
-		chatbox.addChat("- You joined here.");
+		chatbox.addChat("<- You joined here.");
 	});
 	socket.on("enemyChat", (id, chat) => {
 		enemySocketMap[id].putTextOnHover(chat.substring(chat.indexOf(" >: ") + 4));

@@ -123,7 +123,7 @@ class Chatbox {
 		this.w = w;
 		this.hmax = this.h = h;
 		this.hh = 45;
-		this.hcolor = color(36, 41, 56);
+		this.hcolor = color(21, 22, 27);
 		this.textsizetop = this.hh * 0.8;
 		this.theta = radians(-2.3);
 		this.bx = this.w - (this.hh * 3) / 4;
@@ -136,6 +136,7 @@ class Chatbox {
 		this.melta = this.on ? 1 : 0;
 		this.textbox = createInput();
 		this.textbox.attribute("onkeypress", "chatbox_send();");
+		this.textbox.attribute("maxlength", "100");
 		this.textbox.style("transform-origin", "0% 0%");
 		this.textbox.style("border", "none");
 		this.textbox.style("margin", "none");
@@ -245,7 +246,7 @@ class Chatbox {
 		this.g.translate(this.bx, this.by);
 		this.bcolor = lerpColor(
 			this.bcolor,
-			this.inside_button() ? color(171, 29, 81) : color(36, 58, 104), 0.2);
+			this.inside_button() ? color(171, 29, 81) : color(44, 45, 56), 0.2);
 		this.g.fill(this.bcolor);
 		this.g.circle(0, 0, this.bd);
 
@@ -357,7 +358,7 @@ class ColorPicker {
 		this.picker = createColorPicker(initColors[int(random(initColors.length))]);
 		this.color = color(0, 0);
 		this.show_text = false;
-		this.setSize(100,35);
+		this.setSize(100, 35);
 		this.picker.style("opacity", "0");
 		this.picker.style("transform-origin", "0% 0%");
 		// this.picker.style( "background-color" , "red" ) ;
@@ -371,10 +372,10 @@ class ColorPicker {
 		this.size_slider.d = 10;
 		this.position(100, 100, -10);
 	}
-	setSize(w,h) { 
-		this.w = w ; 
-		this.h = h ;
-		this.picker.size(w,h) ; 
+	setSize(w, h) {
+		this.w = w;
+		this.h = h;
+		this.picker.size(w, h);
 	}
 	position(x, y, t) {
 		this.x = x;
@@ -424,14 +425,18 @@ class ColorPicker {
 	work() {
 		this.a = lerp(this.a, this.inside() ? 255 : 10, 0.08);
 		this.setm(translatePoint(mouseX, mouseY, this.x, this.y, this.theta));
+
 		this.color = lerpColor(this.color, this.picker.color(), 0.08);
 		this.color.setAlpha(this.alpha_slider.value);
+
+		this.size_slider.setm(translatePoint(mouseX, mouseY, this.size_slider.x, this.size_slider.y, this.size_slider.theta));
 		this.size_slider.color_line = this.color;
 		this.size_slider.color_button = lerpColor(
 			color(255, 0, 69),
 			this.color,
 			0.6
 		);
+		this.alpha_slider.setm(translatePoint(mouseX, mouseY, this.alpha_slider.x, this.alpha_slider.y, this.alpha_slider.theta));
 		this.alpha_slider.color_line = this.color;
 		this.alpha_slider.color_button = lerpColor(
 			color(255, 0, 69),
@@ -452,7 +457,9 @@ class Slider {
 		x = 0,
 		y = 0,
 		theta = 0,
-		show_value = 2
+		show_value = 2,
+		round_value = 0,
+		f = emptyfunction,
 	) {
 		this.g = g;
 
@@ -467,10 +474,12 @@ class Slider {
 		this.bx = this.xoff = this.yoff = this.mx = this.my = 0;
 		this.theta = theta;
 		this.show_value = show_value;
+		this.round_value = round_value;
 		this.minval = min_val;
 		this.maxval = max_val;
 		this.value = default_val || this.minval;
 		this.bx = ((this.value - this.minval) * this.w) / (this.maxval - this.minval);
+		this.f = f;
 	}
 	position(x, y) {
 		this.x = x;
@@ -480,14 +489,14 @@ class Slider {
 		this.mx = args[0];
 		this.my = args[1];
 	}
-	inside(x, y) {
+	inside() {
 		if (
-			x > this.bx - this.r &&
-			x < this.bx + this.r &&
-			y > -this.r &&
-			y < this.r
+			this.mx > this.bx - this.r &&
+			this.mx < this.bx + this.r &&
+			this.my > -this.r &&
+			this.my < this.r
 		)
-			return dist(x, y, this.bx, 0) < this.r;
+			return dist(this.mx, this.my, this.bx, 0) < this.r;
 		return false;
 	}
 	display() {
@@ -505,16 +514,17 @@ class Slider {
 		this.g.fill(this.color_text);
 		if (this.show_value) {
 			/// maybe even control it when on? too many things possible
-			if (this.show_value === 1 || this.on || this.inside(this.mx, this.my)) {
+			// inside seems to be best with x y passed, but you will fix that later, wont you?
+			if (this.show_value === 1 || this.on || this.inside()) {
 				this.g.textSize(this.r * 2.5);
 				this.g.textAlign(LEFT, BOTTOM);
-				this.g.text(int(this.value), this.w, 0);
+				this.g.text(round(this.value, this.round_value), this.w, 0);
 			}
 		}
 		this.g.pop();
 	}
 	clicked() {
-		if (this.inside(this.mx, this.my)) {
+		if (this.inside()) {
 			this.xoff = this.bx - this.mx;
 			this.yoff = this.y - this.my;
 			this.on = true;
@@ -522,11 +532,11 @@ class Slider {
 	}
 	work() {
 		this.display();
-		this.setm(translatePoint(mouseX, mouseY, this.x, this.y, this.theta));
+		// this.setm(translatePoint(mouseX, mouseY, this.x, this.y, this.theta));
 		if (this.on) {
 			this.bx = constrain(this.xoff + this.mx, 0, this.w);
-			this.value =
-				this.minval + (this.maxval - this.minval) * (this.bx / this.w);
+			this.value = this.minval + (this.maxval - this.minval) * (this.bx / this.w);
+			this.f();
 			if (!mouseIsPressed) this.on = false;
 		}
 		if (this.inside(this.mx, this.my) || this.on)
@@ -638,5 +648,60 @@ class Notification {
 		this.c = this.g.lerpColor(this.c, this.c2, 0.008);
 		this.c.setAlpha(150);
 		this.display();
+	}
+}
+
+
+function DamageIndicatorWork() {
+	for (let i = damage_indicators.length - 1; i > -1; --i) {
+		let looking = createVector(player.looking.x, player.looking.z);
+		let dmgVec2d = createVector(damage_indicators[i].location.x-player.pos.x,damage_indicators[i].location.z-player.pos.z);
+		
+		damage_indicators[i].theta = looking.angleBetween(dmgVec2d) - PI/2 ;
+		
+		this.dtheta = map(this.a, 0, 255, 0, PI / 8);
+		
+		
+		damage_indicators[i].work();
+		if (damage_indicators[i].a < 1) damage_indicators.splice(i, 1);
+	}
+}
+let damage_indicators = [];
+
+class DamageIndicator {
+	constructor(g, location , cr, cg, cb) {
+		this.g = g;
+		this.location = location;
+		this.life = 0;
+		this.cr = cr ; 
+		this.cg = cg ; 
+		this.cb = cb ; 
+		this.a = 0;
+		this.dtheta = PI / 8;
+	}
+	display() {
+		this.g.noFill();
+		this.g.stroke(255, 0, 69, this.a);
+		this.g.strokeWeight(3);
+		this.g.arc(this.g.width / 2, this.g.height / 2, 300, 300, this.theta - this.dtheta, this.theta + this.dtheta);
+		this.g.fill(255, 0, 69, this.a);
+		this.g.noStroke();
+		this.g.triangle(
+			this.g.width / 2 + cos(this.theta) * 160,
+			this.g.height / 2 + sin(this.theta) * 160,
+			this.g.width / 2 + cos(this.theta - this.dtheta * 0.4) * 150,
+			this.g.height / 2 + sin(this.theta - this.dtheta * 0.4) * 150,
+			this.g.width / 2 + cos(this.theta + this.dtheta * 0.4) * 150,
+			this.g.height / 2 + sin(this.theta + this.dtheta * 0.4) * 150
+		);
+		this.g.fill(this.cr,this.cg,this.cb,this.a);
+		this.g.circle(this.g.width / 2 + cos(this.theta) * 140,
+			this.g.height / 2 + sin(this.theta) * 140, 5)
+	}
+	work() {
+		if (this.life < 100) this.a = lerp(this.a, 255, 0.1);
+		else this.a = lerp(this.a, 0, 0.08);
+		this.display();
+		++this.life;
 	}
 }

@@ -38,3 +38,22 @@ function sin(theta) {
     return Math.sin(theta) ; 
 }
 function emptyfunction() {}
+
+function Triangle(g, a) {
+	let b = 0.866 * a;
+	g.triangle(0, -b, -a, b, a, b);
+}
+function Star(g, x, y, radius1, radius2, npoints) {
+	let angle = TWO_PI / npoints;
+	let halfAngle = angle / 2.0;
+	g.beginShape();
+	for (let a = 0; a < TWO_PI; a += angle) {
+		let sx = x + cos(a) * radius2;
+		let sy = y + sin(a) * radius2;
+		g.vertex(sx, sy);
+		sx = x + cos(a + halfAngle) * radius1;
+		sy = y + sin(a + halfAngle) * radius1;
+		g.vertex(sx, sy);
+	}
+	g.endShape(CLOSE);
+}

@@ -52,7 +52,7 @@ function makeHud() {
 				this.graphics.textSize(14);
 				this.graphics.textAlign(this.graphics.RIGHT, this.graphics.BOTTOM);
 				// this.graphics.text((1+h%13) + ":" + minute() + (h>11?" pm":" am") , this.w , 165);
-				this.graphics.text(((h === 0 || h === 12) ? 12 : h % 12) + ":" + minute() + (h > 11 ? " pm" : " am"), this.w, 165);
+				this.graphics.text(((h === 0 || h === 12) ? 12 : h % 12) + ":" + (minute()<10?"0":"") + minute() + (h > 11 ? " pm" : " am"), this.w, 165);
 				this.graphics.textSize(10);
 				this.graphics.text("Server: North America", this.w, this.h);
 
@@ -91,10 +91,11 @@ function makeHud() {
 			sketch.ui_buttons.push(new Button(sketch, "Options", 30, () => { for (let i = 0; i < sketch.pages.length; i++) sketch.pages[i].on = false; sketch.pages[0].on = true; }, false, sketch.width, 0, -6));
 			sketch.ui_buttons.push(new Button(sketch, "Credits", 40, () => { for (let i = 0; i < sketch.pages.length; i++) sketch.pages[i].on = false; sketch.pages[1].on = true; }, false, sketch.width, 0, -6));
 			sketch.ui_buttons.push(new Button(sketch, "Controls", 30, () => { for (let i = 0; i < sketch.pages.length; i++) sketch.pages[i].on = false; sketch.pages[2].on = true; }, false, sketch.width, 0, -6));
-			sketch.ui_buttons.push(new Button(sketch, "Share", 30, () => { navigator.clipboard.writeText("https://workingbuild.herokuapp.com/joinroom/"+room.replace(" ","_")); chatbox.add_notification("Room URL copied to clipboard!"); }, false, sketch.width, 0, -6));
+			sketch.ui_buttons.push(new Button(sketch, "Invite", 30, () => { navigator.clipboard.writeText("https://workingbuild.herokuapp.com/joinroom/"+room.replace(" ","_")); chatbox.add_notification("Room URL copied to clipboard!"); }, false, sketch.width, 0, -6));
 			// sketch.pages[2].on = true;
 			textspray_picker = createInput() ; 
-			// this.textbox.attribute("onkeypress", "chatbox_send();");
+			textspray_picker.attribute("maxlength", "100");
+			textspray_picker.attribute("placeholder", "hello");
 			textspray_picker.style("transform-origin", "0% 0%");
 			textspray_picker.style("border", "none");
 			textspray_picker.style("margin", "none");
@@ -127,7 +128,7 @@ function makeHud() {
 			sketch.ui_buttons[0].position(sketch.width - 320, 0);
 			sketch.ui_buttons[1].position(sketch.width - 180, 0);
 			sketch.ui_buttons[2].position(sketch.width - 468, 0);
-			sketch.ui_buttons[3].position(sketch.width - 585, 0);
+			sketch.ui_buttons[3].position(sketch.width - 576, 0);
 			sketch.score_board.w = sketch.width / 2.5;
 			sketch.score_board.graphics.resizeCanvas(sketch.score_board.w, sketch.score_board.h);
 
@@ -151,23 +152,13 @@ function makeHud() {
 			// sketch.textSize(30);
 			// sketch.textAlign(sketch.LEFT, sketch.CENTER);
 
+			sketch.textFont(font);
 			sketch.playerHealthbar.purevalue = player.health;
 			sketch.playerHealthbar.work();
+			DamageIndicatorWork() ; 
 
-
-			// sketch.text('fCount : ' + frameCount, sketch.width - 300, 65);
 			// sketch.text('planes : ' + planeDisplayCount, sketch.width, 95);
-			// sketch.text(color_picker.size_slider.value, sketch.width, 125);
 			// sketch.text('shatterDecals : ' + shatterDisplayCount, sketch.width - 300, 125);
-			// sketch.text('envDecals : ' + envDecalDisplayCount, sketch.width - 300, 155);
-			// sketch.text('roomName : ' + room, sketch.width, 185);
-			// sketch.text(player.kills + ' | ' + player.deaths + ' ', sketch.width , 245);
-
-
-			// if (displayHudHoverText){
-			// 	sketch.textSize(hudHoverTextSize);
-			// 	sketch.text(hudHoverText, hudHoverTextPos.x, hudHoverTextPos.y);
-			// }
 
 			for (let i = 0; i < sketch.pages.length; i++) if (sketch.pages[i].on) sketch.pages[i].work();
 			if (sketch.score_board.on) sketch.score_board.work();
@@ -405,7 +396,7 @@ function makeLogIn() {
 			sketch.room_button.clicked();
 		}
 		sketch.keyPressed = function () {
-			if (keyCode === 13 && sketch.textbox.value() !== "" && !playButtonClicked) {
+			if (keyCode === 13 && !playButtonClicked) { // && sketch.textbox.value() !== "" 
 				login(sketch.textbox.value(), sketch.roombox.value());
 				playButtonClicked = true;
 			}
