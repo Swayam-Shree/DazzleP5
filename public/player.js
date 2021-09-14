@@ -16,12 +16,13 @@ class Player {
 		this.looking = createVector(0, 0, -1); // vector from self position to vision
 
 		this.sensitivity = 0.002;
-		this.dimensions = createVector(10, 19.9, 10);
+		this.dimensions = createVector(10, 20, 10);
 		this.halfDimensions = createVector(this.dimensions.x / 2, this.dimensions.y / 2, this.dimensions.z / 2);
 
 		this.maxHealth = 500;
 		this.health = this.maxHealth;
 		this.lastShotBy = undefined;
+		this.lastShot = undefined;
 
 		this.kills = 0;
 		this.deaths = 0;
@@ -43,9 +44,8 @@ class Player {
 		this.prevCol = color(0);
 		this.col = color(0);
 
+		this.lookingPlane = null;
 		this.pLookingPlane = null;
-		this.pLookingPt = null;
-		// this.ppLookingPt = createVector();
 
 		this.respawn();
 	}
@@ -166,7 +166,7 @@ Player.prototype.pointCulling = function (x, y, z) {
 }
 Player.prototype.lookingAt = function (m) {
 	let bulletInitial = createVector(this.pos.x, this.pos.y, this.pos.z);
-	let range = 1500;
+	let range = 10000;
 	let bulletDir = this.looking.copy().setMag(range);
 
 	let minX, maxX, minY, maxY, minZ, maxZ;
@@ -261,7 +261,6 @@ Player.prototype.paint = function () {
 	let [lookingPlane, lookingPt] = this.lookingAt(currentMap.planes);
 	if (!this.pLookingPlane || !this.pLookingPt || this.pLookingPlane !== lookingPlane) {
 		this.pLookingPlane = lookingPlane;
-		// this.ppLookingPt = this.ppLookingPt;
 		this.pLookingPt = lookingPt;
 	}
 
@@ -314,7 +313,7 @@ Player.prototype.imageSpray = function (image) {
 }
 Player.prototype.shoot = function () {
 	let bulletInitial = this.pos.copy();
-	let range = 1500;
+	let range = 10000;
 	let bulletDir = this.looking.copy().setMag(range);
 	//let bulletFinal = bulletInitial.copy().add(bulletDir);
 
@@ -379,6 +378,7 @@ Player.prototype.shoot = function () {
 			enemy.health -= this.bulletDamage;
 			socket.emit("enemyShot", enemy.id, this.bulletDamage);	
 			easter_egg_var_dmcv += random(10, 50);
+			this.lastShot = enemy.id;
 		}
 		shatter(enemy.pos, 4, 2.5, -0.02, 2, enemy.col);
 	}
@@ -421,8 +421,8 @@ Player.prototype.bPlaneCollides = function (plane) {
 				}
 				else {
 					this.pos.y = plane.pos.y - this.halfDimensions.y;
-					this.grounded = true;
 					this.vel.y = 0;
+					this.grounded = true;
 					this.jumpsDone = 0;
 				}
 			}

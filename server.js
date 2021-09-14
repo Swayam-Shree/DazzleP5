@@ -12,8 +12,9 @@ console.log("server started");
 app.use(express.static('public', {
 	setHeaders : function(res, path){
 		res.set({
-			"Content-Security-Policy" : "frame-ancestors 'self' https://www.youtube.com/",
-			"X-Frame-Options" : "ALLOW-FROM https://www.youtube.com/"
+			// "Content-Security-Policy" : "https://www.youtube.com/",
+			// "X-Frame-Options" : "ALLOW-FROM https://www.youtube.com/",
+			// "content_security_policy": "script-src 'self' https://foo.com https://example.com; object-src 'self'"
 		});
 	}
 }));

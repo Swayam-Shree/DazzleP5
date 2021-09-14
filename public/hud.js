@@ -137,7 +137,8 @@ function makeHud() {
 
 			sketch.score_board.x = sketch.width / 2 - sketch.score_board.w / 2;
 			sketch.score_board.y = 100;
-			// sketch.enemyHealthBar.position(sketch.width/2,sketch.height/2) ; 
+			sketch.enemyHealthbar.x = sketch.width/2 + 20 ; 
+			sketch.enemyHealthbar.y = sketch.height/2 - 20; 
 		}
 		sketch.draw = function () {
 			// loadingThing(sketch, sketch.width/2, sketch.height * 0.9, 1);
@@ -158,12 +159,17 @@ function makeHud() {
 			sketch.textFont(font);
 			sketch.playerHealthbar.purevalue = player.health;
 			sketch.playerHealthbar.work();
-			if(mouseRight && enemies[0]) { 
-				sketch.enemyHealthbar.s = enemies[0].name ; 
-				sketch.enemyHealthbar.purevalue = enemies[0].health ; 
+			if(mouseRight && enemySocketMap[player.lastShot]) { 
+				sketch.enemyHealthbar.s = enemySocketMap[player.lastShot].name ; 
+				sketch.enemyHealthbar.purevalue = enemySocketMap[player.lastShot].health ;
 				sketch.enemyHealthbar.work();
+				sketch.fill(player.col) ; 
 				sketch.textAlign(LEFT,TOP) ; 
-				sketch.text(int(sketch.enemyHealthbar.value) , width/2 , height/2 ) ; 
+				sketch.text(int(sketch.enemyHealthbar.value) , sketch.enemyHealthbar.x , sketch.enemyHealthbar.y + 20 ) ; 
+				sketch.stroke(player.col) ; 
+				sketch.strokeWeight(2) ; 
+				sketch.line( sketch.width/2 + 7 , sketch.height/2 - 6 , sketch.width/2 + 18 , sketch.height/2 - 23)
+				sketch.line( sketch.width/2 + 7 , sketch.height/2 - 6 , sketch.width/2 + 20 , sketch.height/2 - 12)
 			}
 			damageIndicatorWork() ; 
 

@@ -55,7 +55,6 @@ function draw(){
 	if(abs(player.seekfov - player.fov) > 0.0001 ) {
 		player.fov = lerp(player.fov, player.seekfov, 0.15 ) ; 
 		player.camera.perspective(player.fov, width / height, 1, 10000);
-		print("AAA") ; 
 	}
 	keybindDraw();
 	mapDraw();
@@ -68,7 +67,6 @@ function draw(){
 
 function mousePressed(){
 	if (!loggedIn)return;
-
 	if(mousebindPress[mouseButton])mousebindPress[mouseButton]();
 }
 function mouseReleased(){
@@ -91,6 +89,7 @@ function windowResized(){
 	resizeCanvas(windowWidth, windowHeight);
 	if (!loggedIn)return;
     player.camera.perspective(player.fov, width/height, 1, 10000);
+	hud_pointer.windowResized() ; 
 }
 
 window.onbeforeunload = function(event){

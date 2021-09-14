@@ -35,7 +35,7 @@ class Enemy{
 	constructor(id, name){
 	 	this.id = id;
 	  	this.name = name;
-	  	this.pos = createVector(0, -150, 0);
+	  	this.pos = createVector(0, 150, 0);
 	  	this.col = color(100);
 		this.health = player.maxHealth;
 		this.afk = false;

@@ -51,6 +51,8 @@ function keybindSetup(){
 			mouseRight = true;
 			player.seekfov = PI/1.2 ;
 		},
+		"center" : () => {
+		}
 	}
 	mousebindHold = {
 		"left" : () => {
@@ -62,7 +64,9 @@ function keybindSetup(){
 			}
 		},
 		"right" : () => {
-		}
+		},
+		// "middle" : () => {
+		// }
 	}
 	mousebindRelease = {
 		"left" : () => {
@@ -74,6 +78,52 @@ function keybindSetup(){
 			mouseRight = false;
 			player.seekfov = PI/3 ;
 		},
+		"center" : () => {
+			let [plane, ipt] = player.lookingAt(currentMap.planes);
+			switch (plane.axis){
+				case "x":
+					if (plane.pos.z > player.pos.z) gravity.set(0, 0, 0.1);
+					else gravity.set(0, 0, -0.1);
+					player.vel.mult(0);
+					break;
+				case "y":
+					if (plane.pos.y > player.pos.y) gravity.set(0, 0.1, 0);
+					else gravity.set(0, -0.1, 0);
+					player.vel.mult(0);
+					break;
+				case "z":
+					if (plane.pos.x > player.pos.x) gravity.set(0.1, 0, 0);
+					else gravity.set(-0.1, 0, 0);
+					player.vel.mult(0);
+					break;
+			}
+			// switch(plane.intendedGravityAxis){
+			// 	case "-y":
+			// 		gravity.set(0, -0.1, 0);
+			// 		player.vel.mult(0);
+			// 		break;
+			// 	case "+y":
+			// 		gravity.set(0, 0.1, 0);
+			// 		player.vel.mult(0);
+			// 		break;
+			// 	case "-z":
+			// 		gravity.set(0, 0, -0.1);
+			// 		player.vel.mult(0);
+			// 		break;
+			// 	case "+z":
+			// 		gravity.set(0, 0, 0.1);
+			// 		player.vel.mult(0);
+			// 		break;
+			// 	case "-x":
+			// 		gravity.set(-0.1, 0, 0);
+			// 		player.vel.mult(0);
+			// 		break;
+			// 	case "+x":
+			// 		gravity.set(0.1, 0, 0);
+			// 		player.vel.mult(0);
+			// 		break;								
+			// }
+		}
 	}
 }
 

@@ -1,7 +1,7 @@
 let planeGraphicResolutionScale = 1;
 
 class Plane{
-  	constructor(x, y, z, wid, hei, axis, col = 0){
+  	constructor(x, y, z, wid, hei, axis, col = 0, intendedGravityAxis = "+y"){
         this.index = -1;
 	    this.pos = createVector(x, y, z);
 	    this.dimensions = createVector(wid, hei);
@@ -47,6 +47,8 @@ class Plane{
 	      	this.downBack = createVector(this.pos.x, this.down, this.back);
 	      	this.downFront = createVector(this.pos.x, this.down, this.front);
     	}
+
+        this.intendedGravityAxis = intendedGravityAxis ? intendedGravityAxis : "+y";
   	}
 }
 Plane.prototype.display = function(){
@@ -114,12 +116,12 @@ Plane.prototype.convertWorldCoords = function(pt){
 }
 
 class Map{
-    constructor(template, cols = "", theta = 0){
+    constructor(template, cols = ""){
         this.template = template;
         this.cols = cols.split(" ");
         this.planes = [];
-        this.theta = theta;
         this.initialized = false;
+        this.axis = "-y";
     }
 }
 Map.prototype.addPlane = function(x, y, z, wid, hei, axis){
@@ -130,11 +132,11 @@ Map.prototype.build = function(x, y, z){
     this.initCheck();
     for (let i = 0; i < this.template.length; ++i){
 		let vals = this.template[i];
-		this.planes.push(new Plane(x + vals[0], y + vals[1], z + vals[2], vals[3], vals[4], vals[5], 0));
+        this.planes.push(new Plane(x + vals[0], y + vals[1], z + vals[2], vals[3], vals[4], vals[5], 0, vals[6]));
 	}
 }
 Map.prototype.init = function(){
-    if (this.planes.length !== this.cols.length) console.error("Not enough / too many , colors to fill map");
+    if (this.planes.length !== this.cols.length) console.error("not enough colors to paint map");
     for (let i = 0; i < this.planes.length; ++i){
         let plane = this.planes[i];
         plane.index = i;
@@ -149,11 +151,11 @@ Map.prototype.initCheck = function(){
 Map.prototype.draw = function(){
     let x = 0;
     for (let i = 0; i < this.planes.length; ++i){
-		let plane = this.planes[i];
-		player.planeCollides(plane);
-		// plane.culled = !player.planeCulling(plane);
+        let plane = this.planes[i];
+        player.planeCollides(plane);
+        // plane.culled = !player.planeCulling(plane);
         plane.display();
-        if (plane.axis == 'x' || plane.axis == 'z') ++x;
+        // if (plane.axis == 'x' || plane.axis == 'z' && !plane.culled) ++x;
 
         if (enableShatterDecals){
             for (let i = 0; i < shatterDecals.length; ++i){
@@ -161,7 +163,7 @@ Map.prototype.draw = function(){
             }
         }
 	}
-  	planeDisplayCount = x;
+  	// planeDisplayCount = x;
 }
 
 let currentMap;
@@ -176,7 +178,7 @@ function mapSetup(){
     createMapClassic();
     createMapInception();
 
-    currentMap = mapClassic;
+    currentMap = mapInception;
 }
 
 function mapDraw(){
@@ -302,12 +304,12 @@ function createMapClassic(){
 }
 function createMapInception(){
     let template = [
-        [0, -500, 0, 1000, 1000, 'y'],
-        [0, 500, 0, 1000, 1000, 'y'],
-        [-500, 0, 0, 1000, 1000, 'z'],
-        [500, 0, 0, 1000, 1000, 'z'],
-        [0, 0, -500, 1000, 1000, 'x'],
-        [0, 0, 500, 1000, 1000, 'x'],
+        [0, -250, 0, 500, 500, 'y', "-y"],
+        [0, 250, 0, 500, 500, 'y', "+y"],
+        [-250, 0, 0, 500, 500, 'z', "-x"],
+        [250, 0, 0, 500, 500, 'z', "+x"],
+        [0, 0, -250, 500, 500, 'x', "-z"],
+        [0, 0, 250, 500, 500, 'x', "+z"],
     ];
     let colStr = "rgba(50,50,50,1) rgba(35,35,35,1) rgba(44,44,44,1) rgba(36,36,36,1) rgba(23,23,23,1) rgba(33,33,33,1)";
     mapInception = new Map(template, colStr);
