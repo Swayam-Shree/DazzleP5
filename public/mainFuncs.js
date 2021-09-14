@@ -37,6 +37,11 @@ function cos(theta) {
 function sin(theta) { 
     return Math.sin(theta) ; 
 }
+
+function abs(value) { 
+    return Math.abs(value) ;
+}
+
 function emptyfunction() {}
 
 function Triangle(g, a) {

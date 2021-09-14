@@ -210,6 +210,20 @@ this.graphics.text("You can have a look at the source code with  :  F12", 20, i*
 			0
 		)
 	);
+	page_credits.contents.push(
+		new Button(
+			page_credits.graphics,
+			"Kevin.Games",
+			25,
+			() => {
+				open("https://kevin.games/");
+			},
+			false,
+			10,
+			630,
+			0
+		)
+	);
 	page_credits.work_graphics = function () {
 		this.graphics.clear();
 		this.graphics.push();
@@ -231,16 +245,19 @@ this.graphics.text("You can have a look at the source code with  :  F12", 20, i*
 		this.graphics.text("Game By: Johnny John John", 0, 250);
 		this.graphics.textSize(15);
 		this.graphics.text("More to come soon!", 0, 280);
-		this.graphics.text("Please support, every penny makes you a part of this!", 0, 300);
+		this.graphics.text("Please consider supporting if you had a good time!", 0, 300);
 		this.graphics.text("For news, updoots and spicy stuff! :", 0, 320);
-		this.graphics.text("Email: johnnyjohnjohnjingjong@gmail.com", 0, 470);
+		this.graphics.text("Drop by our Discord to share Art! Have a idea or maybe a suggestion? Let us know! Maybe drop in and give a few kind words :)", 0, 470);
+		this.graphics.text("Email: johnnyjohnjohnjingjong@gmail.com", 0, 490);
 
 		// this.graphics.text("none lmao", 0, 640);
 		this.graphics.fill(240, 100, 80);
-		this.graphics.text("---- SUPPORTERS ----", 0, 620);
+		this.graphics.text("Make sure to check out Kevin Games!", 0, 620);
+
+		this.graphics.text("---- SUPPORTERS ----", 0, 740);
 		this.graphics.fill(255, 0, 69);
 		this.graphics.textSize(18);
-		this.graphics.text("Please show the love!", 0, 600);
+		// this.graphics.text("Please show the love!", 0, 600);
 		this.graphics.fill(255, 0, 255);
 		this.graphics.textSize(40);	
 		// this.graphics.text("Lilack - helping out with bug fixes!" , 10 , 680) ; 

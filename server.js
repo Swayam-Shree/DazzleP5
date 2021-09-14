@@ -158,9 +158,9 @@ io.on("connection", (socket) => {
 		fs.write(socket.room.chatHistoryFd, chat + "\n", (err, bytes) => {});
 	});
 
-	socket.on("playerAfkToggle", () => {
+	socket.on("playerAfkStatus", (status) => {
 		if (checkSocket(socket)) return;
-		socket.to(socket.room.name).emit("enemyAfkToggle", socket.id);
+		socket.to(socket.room.name).emit("enemyAfkStatus", socket.id, status);
 	});
 
 	socket.on("playerPaint", (index, x, y, px, py, size, col) => {

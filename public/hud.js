@@ -94,7 +94,8 @@ function makeHud() {
 			sketch.ui_buttons.push(new Button(sketch, "Credits", 40, () => { for (let i = 0; i < sketch.pages.length; i++) sketch.pages[i].on = false; sketch.pages[1].on = true; }, false, sketch.width, 0, -6));
 			sketch.ui_buttons.push(new Button(sketch, "Controls", 30, () => { for (let i = 0; i < sketch.pages.length; i++) sketch.pages[i].on = false; sketch.pages[2].on = true; }, false, sketch.width, 0, -6));
 			sketch.ui_buttons.push(new Button(sketch, "Invite", 30, () => { navigator.clipboard.writeText("https://workingbuild.herokuapp.com/joinroom/"+room.replace(" ","_")); chatbox.add_notification("Room URL copied to clipboard!"); }, false, sketch.width, 0, -6));
-			// sketch.pages[2].on = true;
+			sketch.pages[2].on = !window.localStorage.getItem("isFirstLogin");;
+			window.localStorage.setItem("isFirstLogin", "visited");
 			textspray_picker = createInput() ; 
 			textspray_picker.attribute("maxlength", "100");
 			textspray_picker.attribute("placeholder", "hello");

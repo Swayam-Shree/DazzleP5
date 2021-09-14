@@ -49,6 +49,7 @@ function keybindSetup(){
 		},
 		"right" : () => {
 			mouseRight = true;
+			player.seekfov = PI/1.2 ;
 		},
 	}
 	mousebindHold = {
@@ -69,7 +70,10 @@ function keybindSetup(){
 			mouseLeft = false;
 			player.pLookingPlane = player.pLookingPt = null;
 		},
-		"right" : () => {mouseRight = false;},
+		"right" : () => {
+			mouseRight = false;
+			player.seekfov = PI/3 ;
+		},
 	}
 }
 

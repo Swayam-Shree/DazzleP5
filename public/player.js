@@ -4,7 +4,7 @@ class Player {
 		this.name = name;
 		this.camera = createCamera();
 		setCamera(this.camera);
-		this.fov = PI / 3;
+		this.seekFov = this.fov = PI/3;
 		this.camera.perspective(this.fov, width / height, 1, 10000);
 
 		this.prevPos = createVector(0, 0, 0);
@@ -112,6 +112,8 @@ Player.prototype.respawn = function () {
 	socket.emit("playerKilled", this.lastShotBy);
 	this.pos.set(random(-500, 500), -500, random(-500, 500));
 	this.health = this.maxHealth;
+	// if (hud_pointer) hud_pointer.windowResized(); 
+	// windowResized() ; 
 }
 Player.prototype.jump = function () {
 	if (this.jumpsDone < this.jumpCount) {
@@ -125,7 +127,7 @@ Player.prototype.applyForce = function (force) {
 }
 Player.prototype.planeCulling = function (plane) {
 	let rangeUp = 1;
-	let rangeDown = 0.5;
+	let rangeDown = cos(this.fov);
 	if (plane.axis == 'x') {
 		let dotUpLeft = this.looking.dot(makeVector(this.pos, plane.upLeft).normalize());
 		let dotUpRight = this.looking.dot(makeVector(this.pos, plane.upRight).normalize());
@@ -151,7 +153,7 @@ Player.prototype.planeCulling = function (plane) {
 	}
 }
 Player.prototype.pointCulling = function (x, y, z) {
-	let rangeDown = 0.5;
+	let rangeDown = cos(this.fov);
 	let decalPos;
 	if (y) {
 		decalPos = createVector(x, y, z);
@@ -375,10 +377,10 @@ Player.prototype.shoot = function () {
 		let enemy = enemies[enemyIndex];
 		if(enemy.health > 0) {
 			enemy.health -= this.bulletDamage;
-			socket.emit("enemyShot", enemy.id, this.bulletDamage);
-			shatter(enemy.pos, 4, 2.5, -0.02, 2, enemy.col);
+			socket.emit("enemyShot", enemy.id, this.bulletDamage);	
 			easter_egg_var_dmcv += random(10, 50);
 		}
+		shatter(enemy.pos, 4, 2.5, -0.02, 2, enemy.col);
 	}
 }
 Player.prototype.planeCollides = function (plane) {

@@ -87,8 +87,7 @@ function login(userName, roomName){
 				
 			login_pointer.remove();
 
-			let len = idList.length;
-			for (let i = 0; i < len; ++i){
+			for (let i = 0; i < idList.length; ++i){
 				let enemy = new Enemy(idList[i], userNameList[i])
 				enemies.push(enemy); 
 				enemySocketMap[idList[i]] = enemy;
@@ -243,8 +242,8 @@ function setSocketEvents(){
 		if( Math.abs(youtube_player_api.getCurrentTime() - time) > 5 ) youtube_player_api.seekTo(time);
 	});
 
-	socket.on("enemyAfkToggle", id => {
-		enemySocketMap[id].afk = !enemySocketMap[id].afk;
+	socket.on("enemyAfkStatus", (id, status)  => {
+		enemySocketMap[id].afk = status;
 	});
 }
 

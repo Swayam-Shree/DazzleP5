@@ -52,6 +52,11 @@ function draw(){
 
 	player.update();
 
+	if(abs(player.seekfov - player.fov) > 0.0001 ) {
+		player.fov = lerp(player.fov, player.seekfov, 0.15 ) ; 
+		player.camera.perspective(player.fov, width / height, 1, 10000);
+		print("AAA") ; 
+	}
 	keybindDraw();
 	mapDraw();
 	shatterDraw();
@@ -100,10 +105,11 @@ window.onbeforeunload = function(event){
 window.onfocus = function(){
     tabFocused = true;
 	if (!loggedIn) return;
-	socket.emit("playerAfkToggle")
+	socket.emit("playerAfkStatus", false);
+	
 };
 window.onblur = function(){
     tabFocused = false;
 	if (!loggedIn) return;
-	socket.emit("playerAfkToggle");
+	socket.emit("playerAfkStatus", true);
 }
