@@ -652,7 +652,7 @@ class Notification {
 }
 
 
-function DamageIndicatorWork() {
+function damageIndicatorWork() {
 	for (let i = damage_indicators.length - 1; i > -1; --i) {
 		let looking = createVector(player.looking.x, player.looking.z);
 		let dmgVec2d = createVector(damage_indicators[i].location.x-player.pos.x,damage_indicators[i].location.z-player.pos.z);
@@ -667,7 +667,7 @@ function DamageIndicatorWork() {
 	}
 }
 let damage_indicators = [];
-
+let damage_indicators_max = 20 ; 
 class DamageIndicator {
 	constructor(g, location , cr, cg, cb) {
 		this.g = g;

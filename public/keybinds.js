@@ -5,7 +5,10 @@ function keybindSetup(){
 	keybindPress = {
 		32 : () => {player.jump();}, 					     	  			  // space
 		16 : () => {player.sprinting = true;}, 				  			  // shift
-		86 : () => {chatbox.on = !chatbox.on;},                              // v
+		86 : () => {
+			chatbox.on = !chatbox.on;
+			if (chatbox.on) chatbox.unread_counter = 0;
+		},                              // v
 		67 : () => {youtube_player.on = !youtube_player.on;},  			  // c
 		88 : () => {youtube_player_api.getPlayerState()===1?                 // x
 					 youtube_player_api.pauseVideo():
@@ -42,6 +45,7 @@ function keybindSetup(){
 				youtube_player.textbox_hover = false ; 
 			}
 			chatbox.clicked();
+			enablePaint = pointerLocked;
 		},
 		"right" : () => {
 			mouseRight = true;
@@ -51,17 +55,21 @@ function keybindSetup(){
 		"left" : () => {
 			if (pointerLocked){
 				player.shoot();
+			}
+			if (enablePaint){
 				player.paint();
 			}
 		},
-		"right" : () => {}
+		"right" : () => {
+		}
 	}
 	mousebindRelease = {
 		"left" : () => {
+			if (pointerLocked) enablePaint = true;
 			mouseLeft = false;
 			player.pLookingPlane = player.pLookingPt = null;
 		},
-		"right" : () => {mouseRight = true;},
+		"right" : () => {mouseRight = false;},
 	}
 }
 

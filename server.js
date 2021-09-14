@@ -6,7 +6,7 @@ let fs = require("fs");
 
 let app = express();
 let server = app.listen(port, host);
-let io = socketio(server, {pingTimeout : 120000, pingInterval : 25000});
+let io = socketio(server);
 console.log("server started");
  
 app.use(express.static('public', {
@@ -120,12 +120,12 @@ io.on("connection", (socket) => {
 		});
   	});
 
-  	socket.on("initPlayerProperties", (tosend, id, col, x, y, z, orientation, kills, deaths) => {
+  	socket.on("initPlayerProperties", (tosend, id, col, x, y, z, orientation, kills, deaths, health) => {
 		if (checkSocket(socket)) return;
-  		io.to(tosend).emit("initEnemyProperties", id, col, x, y, z, orientation, kills, deaths);
+  		io.to(tosend).emit("initEnemyProperties", id, col, x, y, z, orientation, kills, deaths, health);
   	});
 
-  	socket.on("playerColorChange", (col) => {
+  	socket.on("playerColorChange", col => {
 		if (checkSocket(socket)) return;
 		socket.to(socket.room.name).emit("enemyColorUpdate", socket.id, col);
   	});
@@ -133,10 +133,14 @@ io.on("connection", (socket) => {
 		if (checkSocket(socket)) return;
 		socket.to(socket.room.name).emit("enemyPositionUpdate", socket.id, x, y, z);
   	});
-  	socket.on("playerOrientationChange", (orientation) => {
+  	socket.on("playerOrientationChange", orientation => {
 		if (checkSocket(socket)) return;
 		socket.to(socket.room.name).emit("enemyOrientationUpdate", socket.id, orientation);
   	});
+	socket.on("playerHealthChange", (shooterId, health) => {
+		if (checkSocket(socket)) return;
+		if (socket.id !== shooterId) socket.to(socket.room.name).emit("enemyHealthUpdate", socket.id, health);
+	});
 
 	socket.on("enemyShot", (id, dmg) => {
 		if (checkSocket(socket)) return;
@@ -147,11 +151,16 @@ io.on("connection", (socket) => {
 		io.to(socket.room.name).emit("userKilled", killerId, socket.id);
 	});
 
-	socket.on("playerChat", (chat) => {
+	socket.on("playerChat", chat => {
 		if (checkSocket(socket)) return;
 		chat = chat.substring(0, 100);
 		socket.to(socket.room.name).emit("enemyChat", socket.id, chat);
 		fs.write(socket.room.chatHistoryFd, chat + "\n", (err, bytes) => {});
+	});
+
+	socket.on("playerAfkToggle", () => {
+		if (checkSocket(socket)) return;
+		socket.to(socket.room.name).emit("enemyAfkToggle", socket.id);
 	});
 
 	socket.on("playerPaint", (index, x, y, px, py, size, col) => {

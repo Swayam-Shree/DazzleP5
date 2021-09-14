@@ -26,7 +26,7 @@ Billboard.prototype.display = function(){
 	  	plane(this.dimensions.x, this.dimensions.y);
   	pop();
 }
-
+ 
 class Fireplace {
   	constructor(x = 0 , y = 0 , z = 0,theta= 0){
 	    this.x = x;

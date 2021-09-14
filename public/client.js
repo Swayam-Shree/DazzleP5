@@ -9,6 +9,7 @@ let gravity;
 let origin, left, right, up, down, front, back;
 
 let pointerLocked;
+let enablePaint;
 
 let player;
 
@@ -17,11 +18,6 @@ let tabFocused = true;
 
 let font, openSans, noobFont;
 let background_r, background_g, background_b, background_a;
-
-// let fingerprint = FingerprintJS.load();
-// fingerprint
-// .then(fp => fp.get())
-// .then(result => fingerprint = result.visitorId);
 
 function preload(){
   	font = loadFont('assets/font.ttf');
@@ -92,9 +88,22 @@ function windowResized(){
     player.camera.perspective(player.fov, width/height, 1, 10000);
 }
 
+window.onbeforeunload = function(event){
+	// event.preventDefault();
+	// event.returnValue = "";
+	// window.localStorage.setItem("ytParticles");
+	// window.localStorage.setItem("ytMute");
+	// window.localStorage.setItem("sensitivity");
+	// window.localStorage.setItem("ytOpen");
+	// window.localStorage.setItem("chatboxOpen");
+}
 window.onfocus = function(){
     tabFocused = true;
+	if (!loggedIn) return;
+	socket.emit("playerAfkToggle")
 };
 window.onblur = function(){
     tabFocused = false;
+	if (!loggedIn) return;
+	socket.emit("playerAfkToggle");
 }

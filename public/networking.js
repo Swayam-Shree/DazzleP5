@@ -108,7 +108,7 @@ function setSocketEvents(){
 		enemies.push(enemy);
 		enemySocketMap[id] = enemy;
 		socket.emit("initPlayerProperties", id, player.id, player.col.toString(), player.pos.x, player.pos.y, player.pos.z,
-					player.orientation, player.kills, player.deaths);
+					player.orientation, player.kills, player.deaths, player.health);
 	});
 	socket.on("playerLeft", (id) => {
 		chatbox.add_notification(`${enemySocketMap[id].name} left`);
@@ -131,20 +131,28 @@ function setSocketEvents(){
 	socket.on("enemyOrientationUpdate", (id, orientation) => {
 		enemySocketMap[id].orientation = orientation;
 	});
+	socket.on("enemyHealthUpdate", (id, health) => {
+		enemySocketMap[id].health = health;
+	});
 
-	socket.on("initEnemyProperties", (id, col, x, y, z, orientation, kills, deaths) => {
+	socket.on("initEnemyProperties", (id, col, x, y, z, orientation, kills, deaths, health) => {
 		let enemy = enemySocketMap[id];
 		enemy.col = color(col);
 		enemy.pos.set(x, y, z);
 		enemy.orientation = orientation;
 		enemy.kills = kills;
-		enemy.deaths = deaths; 
+		enemy.deaths = deaths;
+		enemy.health = health;
 	});
 
-	socket.on("playerShot", (shooterId, dmg) => { 
-		damage_indicators.push(new DamageIndicator(hud_pointer,enemySocketMap[shooterId].pos.copy(),red(enemySocketMap[shooterId].col),green(enemySocketMap[shooterId].col),blue(enemySocketMap[shooterId].col)));
+	socket.on("playerShot", (shooterId, dmg) => {
+		let shooter = enemySocketMap[shooterId];
+		damage_indicators.push(new DamageIndicator(hud_pointer, shooter.pos.copy(), red(shooter.col), green(shooter.col), blue(shooter.col)));
+		if(damage_indicators.length > damage_indicators_max ) damage_indicators.splice(0,1) ;  
 		player.lastShotBy = shooterId;
 		player.health -= dmg;
+		if (player.health <= 0) player.respawn();
+		socket.emit("playerHealthChange", player.lastShotBy, player.health);
 		shatter(player.pos, 4, 2.5, -0.02, 2, player.col);
 	});
 	socket.on("userKilled", (killerId, deceasedId) => {
@@ -152,6 +160,7 @@ function setSocketEvents(){
 			++player.kills;
 			let enemy = enemySocketMap[deceasedId];
 			++enemy.deaths;
+			enemy.health = player.maxHealth;
 			new_killfeed(player.name, enemy.name, enemy.col, player.col);
 		}
 		else if (deceasedId === player.id){
@@ -178,7 +187,7 @@ function setSocketEvents(){
 		chatbox.addChat("<- You joined here.");
 	});
 	socket.on("enemyChat", (id, chat) => {
-		enemySocketMap[id].putTextOnHover(chat.substring(chat.indexOf(" >: ") + 4));
+		enemySocketMap[id].putTextOnHover(chat.substring(chat.indexOf(" >: ") + 4), 5);
 		chatbox.addChat(chat);
 		if(!chatbox.on) ++chatbox.unread_counter;
 	});
@@ -195,12 +204,12 @@ function setSocketEvents(){
 			let vals = points[i].split(" ");
 			switch (vals[0]){
 				case "p":
-					mMap[vals[1]].paint(vals[2] * planeGraphicResolutionScale, vals[3] * planeGraphicResolutionScale,
+					currentMap.planes[vals[1]].paint(vals[2] * planeGraphicResolutionScale, vals[3] * planeGraphicResolutionScale,
 						vals[4] * planeGraphicResolutionScale, vals[5] * planeGraphicResolutionScale, vals[6], color(vals[7]));
 					break;
 
 				case "t":
-					mMap[vals[1]].text(vals[2] * planeGraphicResolutionScale, vals[3] * planeGraphicResolutionScale, vals[4],
+					currentMap.planes[vals[1]].text(vals[2] * planeGraphicResolutionScale, vals[3] * planeGraphicResolutionScale, vals[4],
 						color(vals[5]), color(vals[6]), vals[7]);
 			}
 		}
@@ -210,18 +219,18 @@ function setSocketEvents(){
 		y  *= planeGraphicResolutionScale; 
 		px *= planeGraphicResolutionScale;
 		py *= planeGraphicResolutionScale;
-		mMap[index].paint(x, y, px, py, size, enemySocketMap[id].col);
+		currentMap.planes[index].paint(x, y, px, py, size, enemySocketMap[id].col);
 	});
 	socket.on("enemyTextSpray", (id, index, x, y, text, strokeCol, orientation) => {
 		x *= planeGraphicResolutionScale;
 		y *= planeGraphicResolutionScale;
-		mMap[index].text(x, y, text, enemySocketMap[id].col, color(strokeCol), orientation);
+		currentMap.planes[index].text(x, y, text, enemySocketMap[id].col, color(strokeCol), orientation);
 	});
 	socket.on("enemyImageSpray", (index, x, y, orientation) => {
 		if (easter_egg_var_image){
 			x *= planeGraphicResolutionScale;
 			y *= planeGraphicResolutionScale;
-			mMap[index].image(x, y, easter_egg_var_image, orientation);
+			currentMap.planes[index].image(x, y, easter_egg_var_image, orientation);
 		}
 	});
 
@@ -230,8 +239,12 @@ function setSocketEvents(){
 		youtube_player.who_played = enemySocketMap[id].name; 
 		youtube_player_playlink(link);
 	});
-	socket.on("djtime", (time) => {
+	socket.on("djtime", time => {
 		if( Math.abs(youtube_player_api.getCurrentTime() - time) > 5 ) youtube_player_api.seekTo(time);
+	});
+
+	socket.on("enemyAfkToggle", id => {
+		enemySocketMap[id].afk = !enemySocketMap[id].afk;
 	});
 }
 
@@ -245,11 +258,7 @@ function roomban(password, id, roomName = room){
 }
 
 function getEnemyId(name){
-	let len = enemies.length;
-	for (let i = 0; i < len; ++i){
-		let enemy = enemies[i];
-		if (enemy.name === name){
-			return enemy.id;
-		}
+	for (let i = 0; i < enemies.length; ++i){
+		if (enemies[i].name === name) return enemies[i].id;
 	}
 }

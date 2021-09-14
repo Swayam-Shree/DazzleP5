@@ -37,6 +37,8 @@ class Enemy{
 	  	this.name = name;
 	  	this.pos = createVector(0, 150, 0);
 	  	this.col = color(100);
+		this.health = player.maxHealth;
+		this.afk = false;
 	  	this.nameTag = new Billboard(0, 0, 0, nameTagWidth, nameTagHeight, nameTagTexture);
 	  	this.hoverChat = new Billboard(0, 0, 0, hoverChatWidth, hoverChatHeight, hoverChatTexture);
 
@@ -57,9 +59,7 @@ Enemy.prototype.work = function(){
   	this.nameTag.pos.set(this.pos.x, this.pos.y - player.halfDimensions.y - this.nameTag.dimensions.y/2, this.pos.z);
   	this.hoverChat.pos.set(this.pos.x, this.pos.y - player.halfDimensions.y - this.nameTag.dimensions.y - this.hoverChat.dimensions.y/2, this.pos.z);
 
-  	if (millis() - this.hoverTextTimeInit >= this.hoverTextDeltaTime * 1000){
-	  	this.hoverText = "";
-  	}
+  	if (Date.now() - this.hoverTextTimeInit >= this.hoverTextDeltaTime * 1000) this.hoverText = "";
 }
 Enemy.prototype.display = function(){
 	push();
@@ -81,17 +81,15 @@ Enemy.prototype.display = function(){
 }
 Enemy.prototype.displayTransparentStuff = function(){
   	nameTagTexture.clear();
-  	nameTagTexture.text(this.name, nameTagTexture.width/2, nameTagTexture.height/2);
+  	nameTagTexture.text(this.name + (this.afk ? " (afk)" : ""), nameTagTexture.width/2, nameTagTexture.height/2);
   	this.nameTag.work();
 
-  	if (this.hoverText){
-	  	hoverChatTexture.clear();
-	  	hoverChatTexture.text(this.hoverText, hoverChatTexture.width/2, hoverChatTexture.height/2);
-	  	this.hoverChat.work();
-  	}
+	hoverChatTexture.clear();
+	hoverChatTexture.text(this.hoverText, hoverChatTexture.width/2, hoverChatTexture.height/2);
+	this.hoverChat.work();
 }
-Enemy.prototype.putTextOnHover = function(text, t){
+Enemy.prototype.putTextOnHover = function(text, t = 2){
   	this.hoverText = wordWrap(text, 25);
-  	this.hoverTextTimeInit = millis();
+  	this.hoverTextTimeInit = Date.now();
   	this.hoverTextDeltaTime = t;
 }

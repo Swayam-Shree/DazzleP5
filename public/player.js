@@ -60,10 +60,7 @@ Player.prototype.update = function () {
 		}
 	}
 
-	if (this.vel.x > this.halfDimensions.x) { this.vel.x = this.halfDimensions.x; }
-	if (this.vel.y > this.halfDimensions.y) { this.vel.y = this.halfDimensions.y; }
-	if (this.vel.z > this.halfDimensions.z) { this.vel.z = this.halfDimensions.z; }
-	if (this.pos.y > 500) { this.vel.mult(0); this.respawn(); }
+	if (this.pos.y > 600) { this.vel.mult(0); this.respawn(); }
 
 	this.applyForce(gravity);
 
@@ -75,12 +72,6 @@ Player.prototype.update = function () {
 
 	this.facing.set(this.camera.centerX, this.camera.centerY, this.camera.centerZ);
 	this.looking = makeVector(this.pos, this.facing).normalize();
-
-	if (this.health <= 0) {
-		socket.emit("playerKilled", this.lastShotBy);
-		this.respawn();
-		this.health = 500;
-	}
 
 	// dust_delta = this.pos.copy(); 
 	// dust_delta.sub( this.prevPos ) ; 
@@ -118,7 +109,9 @@ Player.prototype.moveRight = function () {
 	this.camera.setPosition(this.pos.x, this.pos.y, this.pos.z);
 }
 Player.prototype.respawn = function () {
+	socket.emit("playerKilled", this.lastShotBy);
 	this.pos.set(random(-500, 500), -500, random(-500, 500));
+	this.health = this.maxHealth;
 }
 Player.prototype.jump = function () {
 	if (this.jumpsDone < this.jumpCount) {
@@ -263,7 +256,7 @@ Player.prototype.lookingAt = function (m) {
 let old_x , old_y , old_px , old_py , old_size , old_color_r,old_color_g,old_color_b ; 
 
 Player.prototype.paint = function () {
-	let [lookingPlane, lookingPt] = this.lookingAt(mMap);
+	let [lookingPlane, lookingPt] = this.lookingAt(currentMap.planes);
 	if (!this.pLookingPlane || !this.pLookingPt || this.pLookingPlane !== lookingPlane) {
 		this.pLookingPlane = lookingPlane;
 		// this.ppLookingPt = this.ppLookingPt;
@@ -288,7 +281,7 @@ Player.prototype.paint = function () {
 	}
 }
 Player.prototype.textSpray = function (text) {
-	let [lookingPlane, lookingPt] = this.lookingAt(mMap);
+	let [lookingPlane, lookingPt] = this.lookingAt(currentMap.planes);
 	if (lookingPlane) {
 		let [x, y] = lookingPlane.convertWorldCoords(lookingPt);
 		let strokeCol = color(0, 0);
@@ -304,7 +297,7 @@ Player.prototype.textSpray = function (text) {
 	}
 }
 Player.prototype.imageSpray = function (image) {
-	let [lookingPlane, lookingPt] = this.lookingAt(mMap);
+	let [lookingPlane, lookingPt] = this.lookingAt(currentMap.planes);
 	if (lookingPlane) {
 		let [x, y] = lookingPlane.convertWorldCoords(lookingPt);
 		if (lookingPlane.axis === "y") {
@@ -380,9 +373,12 @@ Player.prototype.shoot = function () {
 
 	if (enemyIndex >= 0) {
 		let enemy = enemies[enemyIndex];
-		socket.emit("enemyShot", enemy.id, this.bulletDamage);
-		shatter(enemy.pos, 4, 2.5, -0.02, 2, enemy.col);
-		easter_egg_var_dmcv += random(10, 50);
+		if(enemy.health > 0) {
+			enemy.health -= this.bulletDamage;
+			socket.emit("enemyShot", enemy.id, this.bulletDamage);
+			shatter(enemy.pos, 4, 2.5, -0.02, 2, enemy.col);
+			easter_egg_var_dmcv += random(10, 50);
+		}
 	}
 }
 Player.prototype.planeCollides = function (plane) {

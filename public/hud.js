@@ -16,6 +16,7 @@ function makeHud() {
 			sketch.canvas.style("z-index", "0");
 			// sketch.textFont(noobFont);
 			sketch.playerHealthbar = new sketch.Bar(player.maxHealth, 20, 50, sketch.radians(-4), player.name);
+			sketch.enemyHealthbar = new sketch.Bar(player.maxHealth, sketch.width/2,sketch.height/2, sketch.radians(-4), player.name);
 			sketch.pages = [];
 			sketch.score_board = new Page(sketch, "Scoreboard");
 			sketch.score_board.work_graphics = function () {
@@ -73,6 +74,7 @@ function makeHud() {
 					this.graphics.text(e[i].name, 10, 220 + i * 30);
 					this.graphics.text(e[i].kills, 250, 220 + i * 30);
 					this.graphics.text(e[i].deaths, 300, 220 + i * 30);
+					if(e[i].afk) this.graphics.text("< afk", 350, 220 + i * 30);
 				}
 			}
 			// sketch.score_board.setsize(width/2 , height - 400); 
@@ -134,7 +136,7 @@ function makeHud() {
 
 			sketch.score_board.x = sketch.width / 2 - sketch.score_board.w / 2;
 			sketch.score_board.y = 100;
-
+			// sketch.enemyHealthBar.position(sketch.width/2,sketch.height/2) ; 
 		}
 		sketch.draw = function () {
 			// loadingThing(sketch, sketch.width/2, sketch.height * 0.9, 1);
@@ -155,7 +157,14 @@ function makeHud() {
 			sketch.textFont(font);
 			sketch.playerHealthbar.purevalue = player.health;
 			sketch.playerHealthbar.work();
-			DamageIndicatorWork() ; 
+			if(mouseRight && enemies[0]) { 
+				sketch.enemyHealthbar.s = enemies[0].name ; 
+				sketch.enemyHealthbar.purevalue = enemies[0].health ; 
+				sketch.enemyHealthbar.work();
+				sketch.textAlign(LEFT,TOP) ; 
+				sketch.text(int(sketch.enemyHealthbar.value) , width/2 , height/2 ) ; 
+			}
+			damageIndicatorWork() ; 
 
 			// sketch.text('planes : ' + planeDisplayCount, sketch.width, 95);
 			// sketch.text('shatterDecals : ' + shatterDisplayCount, sketch.width - 300, 125);
@@ -168,7 +177,7 @@ function makeHud() {
 			color_picker.work();
 			youtube_player.work();
 			easter_egg_general(this);
-			for (let i = 0; i < sketch.ui_buttons.length; i++) {
+			for (let i = 0; i < sketch.ui_buttons.length; ++i) {
 				sketch.ui_buttons[i].setm(translatePoint(
 					mouseX,
 					mouseY,
@@ -190,12 +199,16 @@ function makeHud() {
 		}
 		sketch.Bar = class Bar {
 			constructor(maxvalue, x, y, theta = 0, s = '') {
-				this.x = x;
-				this.y = y;
+				this.x = x ; 
+				this.y = y ; 
 				this.theta = theta;
 				this.s = s;
 				this.purevalue = this.value = this.maxvalue = maxvalue;
 			}
+		}
+		sketch.Bar.prototype.position = function(x,y) {
+			this.x = x;
+			this.y = y;
 		}
 		sketch.Bar.prototype.display = function () {
 			sketch.push();
