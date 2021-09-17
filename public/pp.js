@@ -213,17 +213,31 @@ this.graphics.text("You can have a look at the source code with  :  F12", 20, i*
 	page_credits.contents.push(
 		new Button(
 			page_credits.graphics,
-			"Kevin.Games",
-			25,
+			"Youtube!",
+			30,
 			() => {
-				open("https://kevin.games/");
+				open("https://www.youtube.com/channel/UCVYgU1Socu-e2XJP4VCz6Yw/");
 			},
 			false,
-			10,
-			630,
+			550,
+			400,
 			0
 		)
 	);
+	// page_credits.contents.push(
+	// 	new Button(
+	// 		page_credits.graphics,
+	// 		"Kevin.Games",
+	// 		25,
+	// 		() => {
+	// 			open("https://kevin.games/");
+	// 		},
+	// 		false,
+	// 		10,
+	// 		630,
+	// 		0
+	// 	)
+	// );
 	page_credits.work_graphics = function () {
 		this.graphics.clear();
 		this.graphics.push();
@@ -252,7 +266,7 @@ this.graphics.text("You can have a look at the source code with  :  F12", 20, i*
 
 		// this.graphics.text("none lmao", 0, 640);
 		this.graphics.fill(240, 100, 80);
-		this.graphics.text("Make sure to check out Kevin Games!", 0, 620);
+		// this.graphics.text("Make sure to check out Kevin Games!", 0, 620);
 
 		this.graphics.text("---- SUPPORTERS ----", 0, 740);
 		this.graphics.fill(255, 0, 69);
@@ -266,9 +280,15 @@ this.graphics.text("You can have a look at the source code with  :  F12", 20, i*
 		// this.graphics.text("Ontropy - suggestions for video easter eggs :v" , 10 , 720) ; 
 		this.graphics.fill(150, 0, 255);
 		this.graphics.textSize(30);	
+		
 		this.graphics.translate(50,800) ; 
 		this.graphics.rotate(-0.1) ;
 		this.graphics.text("Nekkoh - <3" , 0 , 0 ) ; 
+		this.graphics.rotate(0.1) ; 
+		this.graphics.translate( 250 , 0 ) ; 
+		this.graphics.fill(255,20,20) ;
+		this.graphics.textSize(25);	
+		this.graphics.text("Goularte! obrigada!" , 0 , 0 ) ; 
 		this.graphics.pop();
 	}
 	g.pages = [page_options, page_credits, page_controls]

@@ -159,18 +159,18 @@ function makeHud() {
 			sketch.textFont(font);
 			sketch.playerHealthbar.purevalue = player.health;
 			sketch.playerHealthbar.work();
-			if(mouseRight && enemySocketMap[player.lastShot]) { 
-				sketch.enemyHealthbar.s = enemySocketMap[player.lastShot].name ; 
-				sketch.enemyHealthbar.purevalue = enemySocketMap[player.lastShot].health ;
-				sketch.enemyHealthbar.work();
-				sketch.fill(player.col) ; 
-				sketch.textAlign(LEFT,TOP) ; 
-				sketch.text(int(sketch.enemyHealthbar.value) , sketch.enemyHealthbar.x , sketch.enemyHealthbar.y + 20 ) ; 
-				sketch.stroke(player.col) ; 
-				sketch.strokeWeight(2) ; 
-				sketch.line( sketch.width/2 + 7 , sketch.height/2 - 6 , sketch.width/2 + 18 , sketch.height/2 - 23)
-				sketch.line( sketch.width/2 + 7 , sketch.height/2 - 6 , sketch.width/2 + 20 , sketch.height/2 - 12)
-			}
+			// if(mouseRight && enemySocketMap[player.lastShot]) { 
+			// 	sketch.enemyHealthbar.s = enemySocketMap[player.lastShot].name ; 
+			// 	sketch.enemyHealthbar.purevalue = enemySocketMap[player.lastShot].health ;
+			// 	sketch.enemyHealthbar.work();
+			// 	sketch.fill(player.col) ; 
+			// 	sketch.textAlign(LEFT,TOP) ; 
+			// 	sketch.text(int(sketch.enemyHealthbar.value) , sketch.enemyHealthbar.x , sketch.enemyHealthbar.y + 20 ) ; 
+			// 	sketch.stroke(player.col) ; 
+			// 	sketch.strokeWeight(2) ; 
+			// 	sketch.line( sketch.width/2 + 7 , sketch.height/2 - 6 , sketch.width/2 + 18 , sketch.height/2 - 23)
+			// 	sketch.line( sketch.width/2 + 7 , sketch.height/2 - 6 , sketch.width/2 + 20 , sketch.height/2 - 12)
+			// }
 			damageIndicatorWork() ; 
 
 			// sketch.text('planes : ' + planeDisplayCount, sketch.width, 95);
@@ -307,9 +307,9 @@ function makeLogIn() {
 			sketch.textbox.xx = sketch.width / 2 - sketch.width / 6;
 			sketch.textbox.yy = sketch.height / 2 - 75;
 			sketch.textbox.w = 0;
-
 			sketch.textbox.position(sketch.textbox.xx, sketch.textbox.yy);
-
+			sketch.textbox.value(window.localStorage.getItem("userName") || "");
+			
 			sketch.roombox = sketch.createInput();
 			sketch.roombox.hide();
 			sketch.roombox.attribute("maxlength", "16");
@@ -331,6 +331,7 @@ function makeLogIn() {
 
 			sketch.online_counter = "";
 			sketch.roomList = {};
+			sketch.roomListButtons = [] ; 
 			sketch.windowResized();
 		}
 		sketch.windowResized = function () {
@@ -359,15 +360,15 @@ function makeLogIn() {
 			sketch.rotate(radians(-2));
 			sketch.text("Room:", 0, 0);
 			sketch.pop();
-			sketch.textSize(20);
+			sketch.textSize(22);
 			sketch.fill(255, 0, 69);
 			sketch.textAlign(sketch.RIGHT, sketch.TOP);
-			sketch.text("Online:" + sketch.online_counter, sketch.width, 0);
+			sketch.text("Online:" + sketch.online_counter, sketch.width - 2 , 0);
 			sketch.textAlign(sketch.LEFT, sketch.TOP);
 			// if(sketch.rooms.length) sketch.text("Rooms (" + sketch.rooms.length + ")", 0, 0);
 			let len = Object.keys(sketch.roomList).length;
-			if (len) sketch.text("Rooms (" + len + ")", 0, 0);
-			else sketch.text("Rooms - ", 0, 0);
+			if (len) sketch.text("Rooms (" + len + ")", 2, 0);
+			else sketch.text("Rooms - ", 2, 0);
 			sketch.textSize(12);
 			// for (let i = 0; i < sketch.rooms.length; i++) {
 			// 	sketch.text(
@@ -376,11 +377,42 @@ function makeLogIn() {
 			// 		30 + (sketch.textAscent() + 5) * i
 			// 	);
 			// }
-			let n = 0;
-			for (let roomName in sketch.roomList) {
-				sketch.text(roomName + " - " + sketch.roomList[roomName], 0, 30 + (sketch.textAscent() + 5) * n);
-				++n;
+			// for (let roomName in sketch.roomList) {
+			// 	sketch.text(roomName + " - " + sketch.roomList[roomName], 0, 30 + (sketch.textAscent() + 5) * n);
+			// 	++n;
+			// }
+			if( len !== sketch.roomListButtons.length ) {
+				sketch.roomListButtons = [] ;
+				let n = 0 ; 
+				for (let roomName in sketch.roomList) {
+					let a = new Button(sketch,
+						roomName ,
+						16,
+						() => {
+							sketch.roombox.value(roomName) ; 
+							sketch.allow_custom_room = true;
+							sketch.room_button.s = "If the room exists you will join it, otherwise it will be created";
+							sketch.windowResized();
+						},
+						false,
+						0 ,
+						30 + 25*n ,
+						0
+					) ; 
+					a.displaylikelink = true;
+					a.c_outside = color(255, 0, 69);
+					a.c_inside = color(255);
+					++n;
+					sketch.roomListButtons.push( a ) ;
+				}
 			}
+			for(let i = sketch.roomListButtons.length - 1 ; i > -1 ; --i ) {
+				sketch.roomListButtons[i].setm(translatePoint(mouseX, mouseY, sketch.roomListButtons[i].x, sketch.roomListButtons[i].y, sketch.roomListButtons[i].theta));
+				sketch.roomListButtons[i].work() ; 
+				sketch.fill(sketch.roomListButtons[i].c) ;
+				sketch.text(" - " + sketch.roomList[sketch.roomListButtons[i].s],sketch.roomListButtons[i].x + sketch.roomListButtons[i].w , sketch.roomListButtons[i].y + sketch.roomListButtons[i].h/4);
+			}
+			sketch.play_button.s = sketch.roomList[sketch.roombox.value()] ? "Join" : "Play" ;
 			sketch.play_button.work();
 			sketch.room_button.work();
 			if (sketch.allow_custom_room) {
@@ -414,6 +446,9 @@ function makeLogIn() {
 		sketch.mousePressed = function () {
 			sketch.play_button.clicked();
 			sketch.room_button.clicked();
+			for(let i = sketch.roomListButtons.length - 1 ; i > -1 ; --i ) {
+				sketch.roomListButtons[i].clicked() ; 
+			}
 		}
 		sketch.keyPressed = function () {
 			if (keyCode === 13 && !playButtonClicked) { // && sketch.textbox.value() !== "" 

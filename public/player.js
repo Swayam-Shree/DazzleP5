@@ -4,7 +4,8 @@ class Player {
 		this.name = name;
 		this.camera = createCamera();
 		setCamera(this.camera);
-		this.seekFov = this.fov = PI/3;
+		this.seekFov = PI/3;
+		this.fov = this.seekFov;
 		this.camera.perspective(this.fov, width / height, 1, 10000);
 
 		this.prevPos = createVector(0, 0, 0);
@@ -16,7 +17,9 @@ class Player {
 		this.looking = createVector(0, 0, -1); // vector from self position to vision
 
 		this.sensitivity = 0.002;
-		this.dimensions = createVector(10, 20, 10);
+		this.maxWidth = 15;
+		this.maxHeight = 30
+		this.dimensions = createVector(this.maxWidth, this.maxHeight, this.maxWidth);
 		this.halfDimensions = createVector(this.dimensions.x / 2, this.dimensions.y / 2, this.dimensions.z / 2);
 
 		this.maxHealth = 500;
@@ -31,7 +34,7 @@ class Player {
 		this.prevOrientation = 0;
 		this.orientation = 0; // 0 towards -ve z axis
 
-		this.jumpVec = createVector(0, -3, 0);
+		this.jumpMag = 30;
 		this.jumpCount = 3;
 		this.jumpsDone = 0;
 
@@ -52,7 +55,9 @@ class Player {
 }
 Player.prototype.update = function () {
 	if (pointerLocked) {
-		this.camera.tilt(movedY * this.sensitivity);
+		let tiltAngle = abs(this.looking.angleBetween(seekGravity));
+		if (tiltAngle > PI/18 && tiltAngle < 17 * PI/18) this.camera.tilt(movedY * this.sensitivity);
+	
 		this.camera.pan(-movedX * this.sensitivity);
 		this.orientation = front.angleBetween(createVector(this.looking.x, 0, this.looking.z));
 		if (this.looking.x > 0) {
@@ -61,17 +66,25 @@ Player.prototype.update = function () {
 	}
 
 	if (this.pos.y > 600) { this.vel.mult(0); this.respawn(); }
+	if (distSq(0, 0, 0, this.pos.x, this.pos.y, this.pos.z) > 9000000) {this.vel.mult(0); this.respawn();}
 
-	this.applyForce(gravity);
+	this.applyForce(seekGravity);
 
 	this.vel.add(this.acc);
 	this.pos.add(this.vel);
 	this.acc.mult(0);
 
-	this.camera.setPosition(this.pos.x, this.pos.y, this.pos.z);
+	this.updateCamera();
 
 	this.facing.set(this.camera.centerX, this.camera.centerY, this.camera.centerZ);
 	this.looking = makeVector(this.pos, this.facing).normalize();
+
+	if(abs(player.seekfov - player.fov) > 0.0001 ) {
+		player.fov = lerp(player.fov, player.seekfov, 0.15 ) ; 
+		player.camera.perspective(player.fov, width / height, 1, 10000);
+	}
+
+	if (player.health <= 0) player.respawn();
 
 	// dust_delta = this.pos.copy(); 
 	// dust_delta.sub( this.prevPos ) ; 
@@ -93,34 +106,53 @@ Player.prototype.update = function () {
 	}
 }
 Player.prototype.moveForward = function () {
-	player.pos.add(createVector(player.looking.x, 0, player.looking.z).setMag(this.sprinting ? player.sprintSpeed : player.walkSpeed));
-	this.camera.setPosition(this.pos.x, this.pos.y, this.pos.z);
+	if (seekGravity.x !== 0)
+		player.pos.add(createVector(0, player.looking.y, player.looking.z).setMag(this.sprinting ? player.sprintSpeed : player.walkSpeed));
+	if (seekGravity.y !== 0)
+		player.pos.add(createVector(player.looking.x, 0, player.looking.z).setMag(this.sprinting ? player.sprintSpeed : player.walkSpeed));
+	if (seekGravity.z !== 0)
+		player.pos.add(createVector(player.looking.x, player.looking.y, 0).setMag(this.sprinting ? player.sprintSpeed : player.walkSpeed));
+	this.updateCamera();
 }
 Player.prototype.moveBackward = function () {
-	player.pos.add(createVector(player.looking.x, 0, player.looking.z).setMag(this.sprinting ? -player.sprintSpeed : -player.walkSpeed));
-	this.camera.setPosition(this.pos.x, this.pos.y, this.pos.z);
+	if (seekGravity.x !== 0)
+		player.pos.add(createVector(0, player.looking.y, player.looking.z).setMag(this.sprinting ? -player.sprintSpeed : -player.walkSpeed));
+	if (seekGravity.y !== 0)
+		player.pos.add(createVector(player.looking.x, 0, player.looking.z).setMag(this.sprinting ? -player.sprintSpeed : -player.walkSpeed));
+	if (seekGravity.z !== 0)
+		player.pos.add(createVector(player.looking.x, player.looking.y, 0).setMag(this.sprinting ? -player.sprintSpeed : -player.walkSpeed));
+	this.updateCamera();
 }
 Player.prototype.moveLeft = function () {
-	player.pos.add(player.looking.cross(up).setMag(this.sprinting ? player.sprintSpeed : player.walkSpeed));
-	this.camera.setPosition(this.pos.x, this.pos.y, this.pos.z);
+	player.pos.add(player.looking.cross(gravity).setMag(this.sprinting ? -player.sprintSpeed : -player.walkSpeed));
+	this.updateCamera();
 }
 Player.prototype.moveRight = function () {
-	player.pos.add(player.looking.cross(up).setMag(this.sprinting ? -player.sprintSpeed : -player.walkSpeed));
+	player.pos.add(player.looking.cross(gravity).setMag(this.sprinting ? player.sprintSpeed : player.walkSpeed));
+	this.updateCamera();
+}
+Player.prototype.updateCamera = function(){
 	this.camera.setPosition(this.pos.x, this.pos.y, this.pos.z);
+	this.camera.camera(this.camera.eyeX, this.camera.eyeY, this.camera.eyeZ, this.camera.centerX, this.camera.centerY, this.camera.centerZ,
+		gravity.x, gravity.y, gravity.z);
 }
 Player.prototype.respawn = function () {
 	socket.emit("playerKilled", this.lastShotBy);
 	this.pos.set(random(-500, 500), -500, random(-500, 500));
 	this.health = this.maxHealth;
-	// if (hud_pointer) hud_pointer.windowResized(); 
-	// windowResized() ; 
 }
 Player.prototype.jump = function () {
 	if (this.jumpsDone < this.jumpCount) {
 		this.grounded = false;
-		this.applyForce(this.jumpVec);
+		this.acc.x -= seekGravity.x * this.jumpMag; this.acc.y -= seekGravity.y * this.jumpMag; this.acc.z -= seekGravity.z * this.jumpMag;
 		++this.jumpsDone;
 	}
+}
+Player.prototype.updateDimensions = function(){
+	if (seekGravity.x !== 0) this.dimensions.set(this.maxHeight, this.maxWidth, this.maxWidth);
+	else if (seekGravity.y !== 0) this.dimensions.set(this.maxWidth, this.maxHeight, this.maxWidth);
+	else if (seekGravity.z !== 0) this.dimensions.set(this.maxWidth, this.maxWidth, this.maxHeight);
+	this.halfDimensions.set(this.dimensions.x/2, this.dimensions.y/2, this.dimensions.z/2);
 }
 Player.prototype.applyForce = function (force) {
 	this.acc.add(force);
@@ -254,9 +286,7 @@ Player.prototype.lookingAt = function (m) {
 
 	return [finalPlane, finalIpt];
 }
-
 let old_x , old_y , old_px , old_py , old_size , old_color_r,old_color_g,old_color_b ; 
-
 Player.prototype.paint = function () {
 	let [lookingPlane, lookingPt] = this.lookingAt(currentMap.planes);
 	if (!this.pLookingPlane || !this.pLookingPt || this.pLookingPlane !== lookingPlane) {
@@ -375,8 +405,9 @@ Player.prototype.shoot = function () {
 	if (enemyIndex >= 0) {
 		let enemy = enemies[enemyIndex];
 		if(enemy.health > 0) {
-			enemy.health -= this.bulletDamage;
-			socket.emit("enemyShot", enemy.id, this.bulletDamage);	
+			let dmg = mouseRight ? this.bulletDamage * 3 : this.bulletDamage;
+			enemy.health -= dmg;
+			socket.emit("enemyShot", enemy.id, dmg);	
 			easter_egg_var_dmcv += random(10, 50);
 			this.lastShot = enemy.id;
 		}
@@ -403,10 +434,18 @@ Player.prototype.bPlaneCollides = function (plane) {
 				if (plane.pos.z - front < back - plane.pos.z) {
 					this.pos.z = plane.pos.z + this.halfDimensions.z;
 					this.vel.z = 0;
+					if (seekGravity.z < 0){
+						this.grounded = true;
+						this.jumpsDone = 0;
+					}
 				}
 				else {
 					this.pos.z = plane.pos.z - this.halfDimensions.z;
 					this.vel.z = 0;
+					if (seekGravity.z < 0){
+						this.grounded = true;
+						this.jumpsDone = 0;
+					}
 				}
 			}
 		}
@@ -418,12 +457,18 @@ Player.prototype.bPlaneCollides = function (plane) {
 				if (plane.pos.y - up < down - plane.pos.y) {
 					this.pos.y = plane.pos.y + this.halfDimensions.y;
 					this.vel.y = 0;
+					if (seekGravity.y < 0){
+						this.grounded = true;
+						this.jumpsDone = 0;
+					}
 				}
 				else {
 					this.pos.y = plane.pos.y - this.halfDimensions.y;
 					this.vel.y = 0;
-					this.grounded = true;
-					this.jumpsDone = 0;
+					if (seekGravity.y > 0){
+						this.grounded = true;
+						this.jumpsDone = 0;
+					}
 				}
 			}
 		}
@@ -435,10 +480,18 @@ Player.prototype.bPlaneCollides = function (plane) {
 				if (plane.pos.x - left < right - plane.pos.x) {
 					this.pos.x = plane.pos.x + this.halfDimensions.x;
 					this.vel.x = 0;
+					if (seekGravity.x < 0){
+						this.grounded = true;
+						this.jumpsDone = 0;
+					}
 				}
 				else {
 					this.pos.x = plane.pos.x - this.halfDimensions.x;
 					this.vel.x = 0;
+					if (seekGravity.x < 0){
+						this.grounded = true;
+						this.jumpsDone = 0;
+					}
 				}
 			}
 		}

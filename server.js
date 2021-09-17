@@ -14,7 +14,6 @@ app.use(express.static('public', {
 		res.set({
 			// "Content-Security-Policy" : "https://www.youtube.com/",
 			// "X-Frame-Options" : "ALLOW-FROM https://www.youtube.com/",
-			// "content_security_policy": "script-src 'self' https://foo.com https://example.com; object-src 'self'"
 		});
 	}
 }));
@@ -25,12 +24,7 @@ app.get("/joinroom/:roomName", (req, res) => {
 	let roomName = req.params.roomName;
 	let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 	joinFromLinkMap.set(ip, roomName);
-	if (process.env.port){
-		res.redirect("https://workingbuild.herokuapp.com");
-	}
-	else{
-		res.redirect("http://127.0.0.1:127");
-	}
+	res.redirect("https://workingbuild.herokuapp.com");
 });
 
 if (!fs.existsSync("history")){
@@ -40,7 +34,6 @@ if (!fs.existsSync("history")){
 let roomNameMap = {}; // maps room's name to room object
 let roomList = {} // map room's name to players in it
 let bannedIps = [];
-let fingerprintTimeMap = {};
 
 function checkForLinkJoin(socket){
 	let ip = getIp(socket);
@@ -95,14 +88,11 @@ io.on("connection", (socket) => {
 			return;
 		}
 
-		socket.broadcast.emit("preLoginPlayerJoined", roomName);
-
 		if (userName.length > 16)userName = userName.substring(0, 16);
 		if (roomName.length > 16)roomName = roomName.substring(0, 16);
 		roomName.replace(" ", "_");
   		
   		if (roomName in roomNameMap){
-			
 			socket.room = roomNameMap[roomName];
 			if (socket.room.bannedIps.includes(ip)){
 				io.to(socket.id).emit("banned");;
@@ -112,7 +102,8 @@ io.on("connection", (socket) => {
   		}
   		else {
 			socket.room = new Room(roomName);
-  		}	
+  		}
+		socket.broadcast.emit("preLoginPlayerJoined", roomName);
   		callback(socket.id, socket.room.socketIds, socket.room.users, socket.room.ytLink, socket.room.djid);
 		socket.userName = userName;
   		socket.room.addClient(socket, userName);
@@ -138,14 +129,13 @@ io.on("connection", (socket) => {
 		if (checkSocket(socket)) return;
 		socket.to(socket.room.name).emit("enemyOrientationUpdate", socket.id, orientation);
   	});
-	socket.on("playerHealthChange", (shooterId, health) => {
-		if (checkSocket(socket)) return;
-		if (socket.id !== shooterId) socket.to(socket.room.name).emit("enemyHealthUpdate", socket.id, health);
+	socket.on("playerGravityChange", (x, y, z) => {
+		socket.to(socket.room.name).emit("enemyGravityUpdate", socket.id, x, y, z);
 	});
 
 	socket.on("enemyShot", (id, dmg) => {
 		if (checkSocket(socket)) return;
-		io.to(id).emit("playerShot", socket.id, dmg);
+		socket.to(socket.room.name).emit("userShot", socket.id, id, dmg);
 	});
 	socket.on("playerKilled", (killerId) => {
 		if (checkSocket(socket)) return;
@@ -217,6 +207,7 @@ io.on("connection", (socket) => {
 		if (password !== "bigtitsareshit") return;
 		let s = io.sockets.sockets.get(id);
 		bannedIps.push(getIp(s));
+		socket.to(socket.room.name).emit("enemyBanned", socket.id);
 		io.to(id).emit("banned");
 		s.disconnect();
 	});
@@ -225,6 +216,7 @@ io.on("connection", (socket) => {
 		if (password !== "bigtitsareshit") return;
 		let s = io.sockets.sockets.get(id);
 		roomNameMap[roomName].bannedIps.push(getIp(s));
+		socket.to(socket.room.name).emit("enemyBanned", socket.id);
 		io.to(id).emit("banned");
 		s.disconnect();
 	});
@@ -268,7 +260,7 @@ Room.prototype.addClient = function(socket, userName){
 	this.sockets.push(socket);
 	this.socketIds.push(socket.id);
 	this.users.push(userName);
-	fs.createReadStream(`history/${this.name}painthistory.txt`, {encoding : "utf8", highWaterMark : 64 * 1024}).on("data", (data) => {
+	fs.createReadStream(`history/${this.name}painthistory.txt`, {encoding : "utf8", highWaterMark : 8 * 1024}).on("data", (data) => {
 		io.to(socket.id).emit("paintHistory", data);
 	});
 }

@@ -166,6 +166,29 @@ Map.prototype.draw = function(){
   	// planeDisplayCount = x;
 }
 
+function changeGravity(){
+    if (enableGravityManipulation){
+        let [plane, ipt] = player.lookingAt(currentMap.planes);
+        switch (plane.axis){
+            case "x":
+                if (plane.pos.z > player.pos.z) seekGravity.set(0, 0, 0.1);
+                else seekGravity.set(0, 0, -0.1);
+                break;
+            case "y":
+                if (plane.pos.y > player.pos.y) seekGravity.set(0, 0.1, 0);
+                else seekGravity.set(0, -0.1, 0);
+                break;
+            case "z":
+                if (plane.pos.x > player.pos.x) seekGravity.set(0.1, 0, 0);
+                else seekGravity.set(-0.1, 0, 0);
+                break;
+        }
+        player.vel.mult(0);
+        player.updateDimensions();
+        socket.emit("playerGravityChange", seekGravity.x, seekGravity.y, seekGravity.z);
+    }
+}
+
 let currentMap;
 let mapClassic;
 let mapInception;
@@ -178,7 +201,7 @@ function mapSetup(){
     createMapClassic();
     createMapInception();
 
-    currentMap = mapInception;
+    currentMap = mapClassic;
 }
 
 function mapDraw(){
@@ -193,16 +216,16 @@ function createMapClassic(){
         [-200, 100, -300, 600, 400, 'y'],
         [-200, 100, 300, 600, 400, 'y'],
 
-        [315, 85, 0, 60, 30, 'z'],//boxes
-        [285, 85, 0, 60, 30, 'z'],
-        [300, 85, -30, 30, 30, 'x'],
-        [300, 85, 30, 30, 30, 'x'],
-        [300, 69.9, 0, 30, 60, 'y'],
-        [315, 55, 0, 30, 30, 'z'],
-        [285, 55, 0, 30, 30, 'z'],
-        [300, 55, -15, 30, 30, 'x'],
-        [300, 55, 15, 30, 30, 'x'],
-        [300, 39.9, 0, 30, 30, 'y'],
+        // [315, 85, 0, 60, 30, 'z'],//boxes
+        // [285, 85, 0, 60, 30, 'z'],
+        // [300, 85, -30, 30, 30, 'x'],
+        // [300, 85, 30, 30, 30, 'x'],
+        // [300, 69.9, 0, 30, 60, 'y'],
+        // [315, 55, 0, 30, 30, 'z'],
+        // [285, 55, 0, 30, 30, 'z'],
+        // [300, 55, -15, 30, 30, 'x'],
+        // [300, 55, 15, 30, 30, 'x'],
+        // [300, 39.9, 0, 30, 30, 'y'],
 
         [-400, 65, -250, 150, 70, 'z'],//building
         [-395, 65, -250, 150, 70, 'z'],

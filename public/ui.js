@@ -552,9 +552,10 @@ function new_killfeed(s1, s2, c1 = color(255, 0, 0), c2 = color(0, 0, 255)) {
 	else
 		side_notifications.push(new Notification(hud_pointer,
 			150, s1, s2, c1, c2));
+	if( side_notifications.length > side_notifications_max ) side_notifications.splice(0,1) ; 
 }
 
-let side_notifications = [];
+let side_notifications = [] , side_notifications_max = 20 ;
 
 function display_killfeed() {
 	for (let i = side_notifications.length - 1; i > -1; i--) {

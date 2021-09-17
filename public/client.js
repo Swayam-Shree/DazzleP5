@@ -5,7 +5,7 @@ let worldCanvas;
 
 let fr = 0, averageFramerate = 0;
 
-let gravity;
+let gravity, seekGravity;
 let origin, left, right, up, down, front, back;
 
 let pointerLocked;
@@ -32,7 +32,7 @@ function setup(){
 	frameRate(60);
 	networkSetup();
 	origin = createVector(0, 0, 0);left = createVector(-1, 0, 0);right = createVector(1, 0, 0);up = createVector(0, -1, 0);down = createVector(0, 1, 0);front = createVector(0, 0, -1);back = createVector(0, 0, 1);
-  	gravity = down.copy().mult(0.1);
+  	seekGravity = down.copy().mult(0.1); gravity = seekGravity.copy();
 
   	makeLogIn();
 	document.addEventListener("dragenter", () => {youtube_player.textbox_hover = true;youtube_player.textbox_tempval = youtube_player.textbox.value();});
@@ -48,14 +48,11 @@ function draw(){
 
 	pointerLocked = document.pointerLockElement === canvas || document.mozPointerLockElement === canvas;
 	fr += frameRate();if (frameCount % 50 == 0){averageFramerate = floor(fr/50);fr = 0;}
-	background(background_r, background_g, background_b, background_a); 
+	background(background_r, background_g, background_b, background_a);
+	p5.Vector.lerp(gravity, seekGravity, 0.05, gravity);
 
 	player.update();
 
-	if(abs(player.seekfov - player.fov) > 0.0001 ) {
-		player.fov = lerp(player.fov, player.seekfov, 0.15 ) ; 
-		player.camera.perspective(player.fov, width / height, 1, 10000);
-	}
 	keybindDraw();
 	mapDraw();
 	shatterDraw();

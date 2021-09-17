@@ -51,6 +51,8 @@ class Enemy{
 
 		this.kills = 0;
 		this.deaths = 0;
+
+		this.gravity = createVector(0, 1, 0);
 	}
 }
 Enemy.prototype.work = function(){
@@ -67,11 +69,15 @@ Enemy.prototype.display = function(){
 		stroke(0);
 	  	strokeWeight(2);
 		fill(this.col);
-	  	//rotateY(this.orientation);
 	  	noStroke();
+		if (this.gravity.x > 0){rotateZ(-PI/2);}
+		else if (this.gravity.x < 0){rotateZ(PI/2);}
+		else if (this.gravity.y > 0){}
+		else if (this.gravity.y < 0){rotateX(PI);}
+		else if (this.gravity.z > 0){rotateX(PI/2);}
+		else if (this.gravity.z < 0){rotateX(-PI/2);}
 	  	cylinder(player.halfDimensions.x, player.dimensions.y, 10);
-	  	//box(player.dimensions.x, player.dimensions.y, player.dimensions.z);
-	  	//rotateY(-this.orientation);
+
 	  	translate(this.orientationVector.x * 20, player.dimensions.y/3, this.orientationVector.z * 20);
 	  	rotateY(this.orientation);
 	  	rotateX(-PI/2);

@@ -4,8 +4,6 @@ let tPaintData;
 
 function networkSetup(){
 	socket = io();
-	
-	// socket.emit("setFingerprint", fingerprint);
 
 	socket.on("disconnected", () => {
 		disconnected = true;
@@ -67,8 +65,25 @@ function networkSetup(){
 
 function login(userName, roomName){
 	if (!loggedIn){
-		if (roomName == "") roomName = "Global Room";
+		if (roomName === ""){
+			let t = 5;
+			for (let rName in login_pointer.roomList){
+				if (login_pointer.roomList[rName] < t){
+					roomName = rName;
+					break;
+				}
+			}
+			if (roomName === ""){
+				for (let i = 1; i < 70; ++i){
+					let rName = "Global Room " + i;
+					if (rName in login_pointer.roomList && login_pointer.roomList[rName] > t - 1) continue;
+					roomName = rName;
+					break;
+				}
+			}
+		}
 		if (userName == "") userName = "unnamed " + int(random(100))/10;
+		else window.localStorage.setItem("userName", userName);
 		if (userName.length > 16)userName = userName.substring(0, 16);
 		if (roomName.length > 16)roomName = roomName.substring(0, 16);
 		room = roomName;
@@ -94,6 +109,8 @@ function login(userName, roomName){
 			}
 
 			if (enemySocketMap[djid]) youtube_player.who_played = enemySocketMap[djid].name;
+
+			// setTimeout(() => { windowResized() ; hud_pointer.windowResized() } , 3000);
 		});
 	}
 
@@ -130,8 +147,8 @@ function setSocketEvents(){
 	socket.on("enemyOrientationUpdate", (id, orientation) => {
 		enemySocketMap[id].orientation = orientation;
 	});
-	socket.on("enemyHealthUpdate", (id, health) => {
-		enemySocketMap[id].health = health;
+	socket.on("enemyGravityUpdate", (id, x, y, z) => {
+		enemySocketMap[id].gravity.set(x, y, z);
 	});
 
 	socket.on("initEnemyProperties", (id, col, x, y, z, orientation, kills, deaths, health) => {
@@ -144,23 +161,28 @@ function setSocketEvents(){
 		enemy.health = health;
 	});
 
-	socket.on("playerShot", (shooterId, dmg) => {
-		let shooter = enemySocketMap[shooterId];
-		damage_indicators.push(new DamageIndicator(hud_pointer, shooter.pos.copy(), red(shooter.col), green(shooter.col), blue(shooter.col)));
-		if(damage_indicators.length > damage_indicators_max ) damage_indicators.splice(0,1) ;  
-		player.lastShotBy = shooterId;
-		player.health -= dmg;
-		if (player.health <= 0) player.respawn();
-		socket.emit("playerHealthChange", player.lastShotBy, player.health);
-		shatter(player.pos, 4, 2.5, -0.02, 2, player.col);
+	socket.on("userShot", (shooterId, victimId, dmg) => {
+		if (victimId === player.id){
+			let shooter = enemySocketMap[shooterId];
+			damage_indicators.push(new DamageIndicator(hud_pointer, shooter.pos.copy(), red(shooter.col), green(shooter.col), blue(shooter.col)));
+			if(damage_indicators.length > damage_indicators_max ) damage_indicators.splice(0,1) ;  
+			player.lastShotBy = shooterId;
+			player.health -= dmg;
+			shatter(player.pos, 4, 2.5, -0.02, 2, player.col);
+		}
+		else{
+			enemySocketMap[victimId].health -= dmg;
+		}
 	});
 	socket.on("userKilled", (killerId, deceasedId) => {
 		if (player.id === killerId){
+			player.health = player.maxHealth;
 			++player.kills;
 			let enemy = enemySocketMap[deceasedId];
 			++enemy.deaths;
-			enemy.health = player.maxHealth;
 			new_killfeed(player.name, enemy.name, enemy.col, player.col);
+			enemy.health = player.maxHealth;
+			enemy.pos.y = 10000;
 		}
 		else if (deceasedId === player.id){
 			++player.deaths;
@@ -174,6 +196,9 @@ function setSocketEvents(){
 			++p1.kills;
 			++p2.deaths;
 			new_killfeed(p1.name, p2.name, p2.col, p1.col);
+			p2.health = player.maxHealth;
+			enemy.pos.y = 10000;
+			p1.health = player.maxHealth;
 		}
 	});
 
@@ -244,6 +269,10 @@ function setSocketEvents(){
 
 	socket.on("enemyAfkStatus", (id, status)  => {
 		enemySocketMap[id].afk = status;
+	});
+
+	socket.on("enemyBanned", id => {
+		chatbox.add_notification(`${enemySocketMap[id].name} was BANNED`);
 	});
 }
 
