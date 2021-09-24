@@ -410,7 +410,8 @@ function makeLogIn() {
 				sketch.roomListButtons[i].setm(translatePoint(mouseX, mouseY, sketch.roomListButtons[i].x, sketch.roomListButtons[i].y, sketch.roomListButtons[i].theta));
 				sketch.roomListButtons[i].work() ; 
 				sketch.fill(sketch.roomListButtons[i].c) ;
-				sketch.text(" - " + sketch.roomList[sketch.roomListButtons[i].s],sketch.roomListButtons[i].x + sketch.roomListButtons[i].w , sketch.roomListButtons[i].y + sketch.roomListButtons[i].h/4);
+				sketch.text(" - " + sketch.roomList[sketch.roomListButtons[i].s].userCount,sketch.roomListButtons[i].x + sketch.roomListButtons[i].w , sketch.roomListButtons[i].y + sketch.roomListButtons[i].h/4);
+				sketch.text(` - ${round(sketch.roomList[sketch.roomListButtons[i].s].historySize, 2)} mb`,sketch.roomListButtons[i].x + sketch.roomListButtons[i].w + 20, sketch.roomListButtons[i].y + sketch.roomListButtons[i].h/4);
 			}
 			sketch.play_button.s = sketch.roomList[sketch.roombox.value()] ? "Join" : "Play" ;
 			sketch.play_button.work();

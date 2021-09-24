@@ -97,6 +97,8 @@ window.onbeforeunload = function(event){
 	// window.localStorage.setItem("sensitivity");
 	// window.localStorage.setItem("ytOpen");
 	// window.localStorage.setItem("chatboxOpen");
+	window.localStorage.removeItem("id");
+	socket.emit("userExiting");
 }
 window.onfocus = function(){
     tabFocused = true;

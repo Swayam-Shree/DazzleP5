@@ -24,14 +24,14 @@ function networkSetup(){
 	socket.on("preLoginPlayerJoined", (roomName) => {
 		if(loggedIn) return;
 		++login_pointer.online_counter;
-		if (roomName in login_pointer.roomList) ++login_pointer.roomList[roomName];
-		else login_pointer.roomList[roomName] = 1;
+		if (roomName in login_pointer.roomList) ++login_pointer.roomList[roomName].userCount;
+		else login_pointer.roomList[roomName].userCount = 1;
 	});
 	socket.on("preLoginPlayerLeft", (roomName) => {
 		if(loggedIn) return;
 		--login_pointer.online_counter;
-		--login_pointer.roomList[roomName];
-		if (login_pointer.roomList[roomName] < 1) delete login_pointer.roomList[roomName];
+		--login_pointer.roomList[roomName].userCount;
+		if (login_pointer.roomList[roomName].userCount < 1) delete login_pointer.roomList[roomName];
 	});
 
 	socket.on("loginFromLink", (id, userName, roomName, idList, userNameList, ytLink, djid_) => {
@@ -67,16 +67,27 @@ function login(userName, roomName){
 	if (!loggedIn){
 		if (roomName === ""){
 			let t = 5;
+			let idealRoom, idealRoomSize;
 			for (let rName in login_pointer.roomList){
-				if (login_pointer.roomList[rName] < t){
-					roomName = rName;
-					break;
+				let historySize = login_pointer.roomList[rName].historySize;
+				if (login_pointer.roomList[rName].userCount < t){
+					if (idealRoomSize){
+						if (historySize < idealRoomSize){
+							idealRoom = rName;
+							idealRoomSize = historySize;
+						}
+					}
+					else {
+						idealRoom = rName;
+						idealRoomSize = historySize;
+					}
 				}
 			}
+			if (idealRoom) roomName = idealRoom;
 			if (roomName === ""){
 				for (let i = 1; i < 70; ++i){
 					let rName = "Global Room " + i;
-					if (rName in login_pointer.roomList && login_pointer.roomList[rName] > t - 1) continue;
+					if (rName in login_pointer.roomList && login_pointer.roomList[rName].userCount > t - 1) continue;
 					roomName = rName;
 					break;
 				}
@@ -87,9 +98,11 @@ function login(userName, roomName){
 		if (userName.length > 16)userName = userName.substring(0, 16);
 		if (roomName.length > 16)roomName = roomName.substring(0, 16);
 		room = roomName;
+
 		socket.emit("login", userName, roomName, (id, idList, userNameList, ytLink, djid_) => {
 			loggedIn = true;
 
+			window.localStorage.setItem("id", id);
 			player = new Player(id, userName);
 			makeHud();
 				
@@ -109,8 +122,6 @@ function login(userName, roomName){
 			}
 
 			if (enemySocketMap[djid]) youtube_player.who_played = enemySocketMap[djid].name;
-
-			// setTimeout(() => { windowResized() ; hud_pointer.windowResized() } , 3000);
 		});
 	}
 
@@ -118,6 +129,9 @@ function login(userName, roomName){
 }
 
 function setSocketEvents(){
+	socket.on("getReconnectId", callback => {
+		callback(window.localStorage.getItem("id"));
+	})
 	socket.on("playerJoined", (id, name) => {
 		chatbox.add_notification(`${name} joined`);
 		let enemy = new Enemy(id, name)

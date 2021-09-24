@@ -1,2 +1,2 @@
 let enableShatterDecals = true;
-let enableGavityManipulation = false;
+let enableGravityManipulation = false;

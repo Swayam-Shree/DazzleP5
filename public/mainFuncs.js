@@ -37,9 +37,11 @@ function cos(theta) {
 function sin(theta) { 
     return Math.sin(theta) ; 
 }
-
 function abs(value) { 
     return Math.abs(value) ;
+}
+function round(value, decimal = 0){
+    return decimal ? Math.round(value * 10 ** decimal)/(10 ** decimal) : Math.round(value);
 }
 
 function emptyfunction() {}

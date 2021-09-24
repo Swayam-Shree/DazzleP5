@@ -32,7 +32,7 @@ if (!fs.existsSync("history")){
 }
 
 let roomNameMap = {}; // maps room's name to room object
-let roomList = {} // map room's name to players in it
+let roomList = {} // map room's name to players in it and its paint history size
 let bannedIps = [];
 
 function checkForLinkJoin(socket){
@@ -77,7 +77,7 @@ io.on("connection", (socket) => {
 
 	checkForLinkJoin(socket);
 
-	let c = 0; for (let key in roomList) c += roomList[key];
+	let c = 0; for (let key in roomList) c += roomList[key].userCount;
 	io.to(socket.id).emit("preLoginInit", c, roomList);
 
   	socket.on("login", (userName, roomName, callback) => {
@@ -161,6 +161,9 @@ io.on("connection", (socket) => {
 		if (socket.room.prevPaintCommand !== command){
 			fs.write(socket.room.paintHistoryFd, command, (err, bytes) => {});
 			socket.room.prevPaintCommand = command;
+			fs.fstat(socket.room.paintHistoryFd, (err, stats) => {
+				roomList[socket.room.name].historySize = stats.size/1048576; // convert b to mb
+			});
 		}
 	});
 	socket.on("playerTextSpray", (index, x, y, text, fillCol, strokeCol, orientation) => {
@@ -190,17 +193,16 @@ io.on("connection", (socket) => {
 	});
 
 	socket.on("disconnecting", () => {
-		if (checkSocket(socket)) return;
-		io.to(socket.id).emit("disconnected");
+		
 	});
 
   	socket.on("disconnect", (err) => {
-		console.log(err);
-		if (checkSocket(socket)) return;
-		socket.broadcast.emit("preLoginPlayerLeft", socket.room.name);
-		socket.to(socket.room.name).emit("playerLeft", socket.id);
-		socket.room.removeClient(socket.id);
+		// console.log(err);
   	});
+	socket.on("reconnect", () => {
+		io.to(socket.id).emit("getReconnectId", (id) => {socket.id = id;});
+		console.log("reconnected");
+	});
 
 	socket.on("ipBan", (password, id) => {
 		if (checkSocket(socket)) return;
@@ -220,6 +222,13 @@ io.on("connection", (socket) => {
 		io.to(id).emit("banned");
 		s.disconnect();
 	});
+
+	socket.on("userExiting", () => {
+		if (checkSocket(socket)) return;
+		socket.broadcast.emit("preLoginPlayerLeft", socket.room.name);
+		socket.to(socket.room.name).emit("playerLeft", socket.id);
+		socket.room.removeClient(socket.id);
+	});
 });
 
 function checkSocket(socket){
@@ -238,7 +247,10 @@ function randInt(min, max){
 class Room{
 	constructor(name){
 		roomNameMap[name] = this;
-		roomList[name] = 0;
+		roomList[name] = {
+			userCount : 0,
+			historySize : 0,
+		};
 		this.bannedIps = [];
 		this.name = name;
 		this.sockets = [];
@@ -254,18 +266,18 @@ class Room{
 	}
 }
 Room.prototype.addClient = function(socket, userName){
-	++roomList[this.name];
+	++roomList[this.name].userCount;
 	socket.join(this.name);
 	socket.to(this.name).emit("playerJoined", socket.id, userName);
 	this.sockets.push(socket);
 	this.socketIds.push(socket.id);
 	this.users.push(userName);
-	fs.createReadStream(`history/${this.name}painthistory.txt`, {encoding : "utf8", highWaterMark : 8 * 1024}).on("data", (data) => {
+	fs.createReadStream(`history/${this.name}painthistory.txt`, {encoding : "utf8", highWaterMark : 64 * 1024}).on("data", (data) => {
 		io.to(socket.id).emit("paintHistory", data);
 	});
 }
 Room.prototype.removeClient = function(id){
-	--roomList[this.name];
+	--roomList[this.name].userCount;
 	let len = this.socketIds.length;
 	if (len === 1){
 		delete roomNameMap[this.name];
