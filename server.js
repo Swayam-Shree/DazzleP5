@@ -197,11 +197,13 @@ io.on("connection", (socket) => {
 	});
 
   	socket.on("disconnect", (err) => {
-		// console.log(err);
+		if (checkSocket(socket)) return;
+		socket.broadcast.emit("preLoginPlayerLeft", socket.room.name);
+		socket.to(socket.room.name).emit("playerLeft", socket.id);
+		socket.room.removeClient(socket.id);
   	});
 	socket.on("reconnect", () => {
-		io.to(socket.id).emit("getReconnectId", (id) => {socket.id = id;});
-		console.log("reconnected");
+		console.log("rec");
 	});
 
 	socket.on("ipBan", (password, id) => {
@@ -209,8 +211,16 @@ io.on("connection", (socket) => {
 		if (password !== "bigtitsareshit") return;
 		let s = io.sockets.sockets.get(id);
 		bannedIps.push(getIp(s));
-		socket.to(socket.room.name).emit("enemyBanned", socket.id);
+		socket.to(socket.room.name).emit("enemyBanned", id);
 		io.to(id).emit("banned");
+		s.disconnect();
+	});
+	socket.on("kick", (password, id) => {
+		if (checkSocket(socket)) return;
+		if (password !== "bigtitsareshit") return;
+		let s = io.sockets.sockets.get(id);
+		socket.to(socket.room.name).emit("enemyKicked", id);
+		io.to(id).emit("kicked");
 		s.disconnect();
 	});
 	socket.on("roomBan", (password, id, roomName) => {
@@ -224,10 +234,7 @@ io.on("connection", (socket) => {
 	});
 
 	socket.on("userExiting", () => {
-		if (checkSocket(socket)) return;
-		socket.broadcast.emit("preLoginPlayerLeft", socket.room.name);
-		socket.to(socket.room.name).emit("playerLeft", socket.id);
-		socket.room.removeClient(socket.id);
+		
 	});
 });
 

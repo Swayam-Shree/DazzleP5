@@ -3,13 +3,26 @@ let disconnected = false;
 let tPaintData;
 
 function networkSetup(){
-	socket = io();
+	socket = io({
+		"reconnection": true,
+		"reconnectionDelay": 100,
+		"reconnectionDelayMax" : 5000,
+		"reconnectionAttempts": Number.MAX_VALUE
+	});
 
 	socket.on("disconnected", () => {
+		console.log("disconnected");
 		disconnected = true;
+		makeDisconnect();
+		hud_pointer.remove();
+		remove();
 	});
 	socket.on("banned", () =>{
 		makeDisconnect("get banned lmao");
+		login_pointer.remove();	
+	});
+	socket.on("kicked", () =>{
+		makeDisconnect("You have been kicked due to spamming or griefing. If continued you will be banned permanently.");
 		login_pointer.remove();	
 	});
 	socket.on("roomExistsNot", () => {
@@ -25,7 +38,7 @@ function networkSetup(){
 		if(loggedIn) return;
 		++login_pointer.online_counter;
 		if (roomName in login_pointer.roomList) ++login_pointer.roomList[roomName].userCount;
-		else login_pointer.roomList[roomName].userCount = 1;
+		else login_pointer.roomList[roomName] = {userCount : 1, historySize : 0};
 	});
 	socket.on("preLoginPlayerLeft", (roomName) => {
 		if(loggedIn) return;
@@ -102,7 +115,6 @@ function login(userName, roomName){
 		socket.emit("login", userName, roomName, (id, idList, userNameList, ytLink, djid_) => {
 			loggedIn = true;
 
-			window.localStorage.setItem("id", id);
 			player = new Player(id, userName);
 			makeHud();
 				
@@ -124,14 +136,10 @@ function login(userName, roomName){
 			if (enemySocketMap[djid]) youtube_player.who_played = enemySocketMap[djid].name;
 		});
 	}
-
 	setSocketEvents();
 }
 
 function setSocketEvents(){
-	socket.on("getReconnectId", callback => {
-		callback(window.localStorage.getItem("id"));
-	})
 	socket.on("playerJoined", (id, name) => {
 		chatbox.add_notification(`${name} joined`);
 		let enemy = new Enemy(id, name)
@@ -288,8 +296,15 @@ function setSocketEvents(){
 	socket.on("enemyBanned", id => {
 		chatbox.add_notification(`${enemySocketMap[id].name} was BANNED`);
 	});
+	socket.on("enemyKicked", id => {
+		chatbox.add_notification(`${enemySocketMap[id].name} was KICKED`);
+	});
 }
 
+function kick(password, id){
+	socket.emit("kick", password, id);
+	chatbox.add_notification(`${enemySocketMap[id].name} was KICKED`);
+}
 function ban(password, id){
 	socket.emit("ipBan", password, id);
 	chatbox.add_notification(`${enemySocketMap[id].name} was BANNED`);

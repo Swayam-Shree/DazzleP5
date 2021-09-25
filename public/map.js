@@ -55,8 +55,8 @@ Plane.prototype.display = function(){
     if (this.culled) return;
 	push();
 	translate(this.pos.x, this.pos.y, this.pos.z);
-    if (this.axis == 'y'){rotateX(PI/2);}
-    else if (this.axis == 'z'){rotateY(PI/2);}
+    if (this.axis === 'y'){rotateX(PI/2);}
+    else if (this.axis === 'z'){rotateY(PI/2);}
 
     noStroke();
 

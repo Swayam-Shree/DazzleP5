@@ -44,7 +44,6 @@ function setup(){
 
 function draw(){
 	if (!loggedIn)return;
-	if (disconnected){makeDisconnect(); hud_pointer.remove(); remove(); return;}
 
 	pointerLocked = document.pointerLockElement === canvas || document.mozPointerLockElement === canvas;
 	fr += frameRate();if (frameCount % 50 == 0){averageFramerate = floor(fr/50);fr = 0;}

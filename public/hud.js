@@ -329,7 +329,7 @@ function makeLogIn() {
 			sketch.roombox.w = 0;
 			sketch.roombox.position(sketch.roombox.xx, sketch.roombox.yy);
 
-			sketch.online_counter = "";
+			sketch.online_counter = 0;
 			sketch.roomList = {};
 			sketch.roomListButtons = [] ; 
 			sketch.windowResized();

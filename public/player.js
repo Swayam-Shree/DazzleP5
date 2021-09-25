@@ -8,8 +8,8 @@ class Player {
 		this.fov = this.seekFov;
 		this.camera.perspective(this.fov, width / height, 1, 10000);
 
-		this.prevPos = createVector(0, 0, 0);
-		this.pos = createVector(0, 0, 0);
+		this.prevPos = createVector(random(-500, 500), -500, random(-500, 500));
+		this.pos = this.prevPos.copy();
 		this.vel = createVector(0, 0, 0);
 		this.acc = createVector(0, 0, 0);
 
@@ -49,8 +49,6 @@ class Player {
 
 		this.lookingPlane = null;
 		this.pLookingPlane = null;
-
-		this.respawn();
 	}
 }
 Player.prototype.update = function () {
