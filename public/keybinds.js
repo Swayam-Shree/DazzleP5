@@ -1,7 +1,11 @@
 let keybindPress, keybindHold, keybindRelease;
 let mouseLeft, mouseRight, mousebindPress, mousebindHold, mousebindRelease;
 
+let defaultSprayImage;
+
 function keybindSetup(){
+	defaultSprayImage = loadImage("assets/kawaii.png");
+
 	keybindPress = {
 		32 : () => {player.jump();}, 					     	  			  // space
 		16 : () => {player.sprinting = true;}, 				  			  // shift
@@ -19,7 +23,14 @@ function keybindSetup(){
 					 youtube_player_api.mute();
 					},                                                       
 		84 : () => {player.textSpray(textspray_picker.value() || "hello");},  // t
-		71 : () => {if (easter_egg_var_image) player.imageSpray(easter_egg_var_image);},					  // g
+		71 : () => { // g
+			if (easter_egg_var_image) {
+				player.imageSpray(easter_egg_var_image);
+			}
+			else {
+				player.imageSpray(defaultSprayImage);
+			}
+		},					 
 		192 : () => {hud_pointer.score_board.on = true;},         			  // `
 	}
 	keybindHold = {
@@ -39,7 +50,7 @@ function keybindSetup(){
 	mousebindPress = {
 		"left" : () => {
 			mouseLeft = true;
-			if (mouseX > width * 0.35 && mouseX < width * 0.65 && mouseY > height * 0.35 && mouseY < height * 0.65) {
+			if (mouseX > 0 && mouseX < width && mouseY > height * 0.2 && mouseY < height * 0.65) {
 				if( hud_pointer.pages[0].on ) return ; 
 				requestPointerLock();
 				youtube_player.textbox_hover = false ; 

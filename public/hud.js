@@ -8,9 +8,13 @@ let hud_pointer;
 let login_pointer;
 let disconnect_pointer;
 
+// let default_spray_image;
+
 function makeHud() {
 	let s = function (sketch) {
 		sketch.setup = function () {
+			// default_spray_image = loadImage("assets/kawaii.png");
+			
 			sketch.canvas = sketch.createCanvas(width, height);
 			sketch.canvas.position(0, 0);
 			sketch.canvas.style("z-index", "0");

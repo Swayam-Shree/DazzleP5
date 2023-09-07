@@ -91,7 +91,10 @@ Plane.prototype.image = function(x, y, image, orientation){
     this.graphic.push();
     this.graphic.translate(x, y)
     this.graphic.rotate(-orientation);
+    this.graphic.push();
+    this.graphic.scale(0.2);
     this.graphic.image(image, -image.width/2, -image.height/2);
+    this.graphic.pop();
     this.graphic.pop();
 }
 Plane.prototype.convertWorldCoords = function(pt){

@@ -24,7 +24,7 @@ app.get("/joinroom/:roomName", (req, res) => {
 	let roomName = req.params.roomName;
 	let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 	joinFromLinkMap.set(ip, roomName);
-	res.redirect("https://workingbuild.herokuapp.com");
+	res.redirect("https://dazzlep5.onrender.com");
 });
 
 if (!fs.existsSync("history")){

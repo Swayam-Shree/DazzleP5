@@ -137,7 +137,7 @@ function page_setup(g) {
 		"Spray Text","Spray Image","Toggle Chatbox","Toggle Youtube Player","Youtube Pause/Play","Youtube Mute/Unmute"];
 		let b = [ "W or ⬆","A or ⬅", "S or ⬇ ","D or ➡","Left Click","`", "Shift","Space",
 		"T                  <   \"Hello\" by default, change it in the T button below the color picker",
-		"G                  <   Removed the Image URL support due to spam, only works when certain youtube video is played.","V","C","X","Z"];
+		"G","V","C","X","Z"];
 		let i ;
 		for(i = 0 ; i < a.length ; ++i){ 
 			this.graphics.text(a[i], 20, 300 + 40*i); 
