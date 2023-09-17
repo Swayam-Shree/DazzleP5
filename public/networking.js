@@ -277,6 +277,10 @@ function setSocketEvents(){
 			x *= planeGraphicResolutionScale;
 			y *= planeGraphicResolutionScale;
 			currentMap.planes[index].image(x, y, easter_egg_var_image, orientation);
+		} else {
+			x *= planeGraphicResolutionScale;
+			y *= planeGraphicResolutionScale;
+			currentMap.planes[index].image(x, y, defaultSprayImage, orientation);
 		}
 	});
 
