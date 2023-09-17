@@ -1,3 +1,45 @@
+
+const { MongoClient, ServerApiVersion } = require('mongodb');
+const uri = "mongodb+srv://swayamshreesharma:Swayam%409114_@dazzle.de7fpdy.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp";
+
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const mongoCli = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
+async function loadBannedIps(client, socket){
+    ip = await client.db("dazzle").collection("bannedips").findOne({name: getIp(socket).toString()});
+ 
+    if (ip) {
+		socket.to(socket.room.name).emit("enemyBanned", id);
+		io.to(id).emit("banned");
+		s.disconnect();
+	}
+};
+async function addBannedIp(ip) {
+	await client.db("dazzle").collection("bannedips").updateOne({ name: ip.toString() }, { $set: 1 });
+}
+async function run() {
+  try {
+    // Connect the client to the server	(optional starting in v4.7)
+    await mongoCli.connect();
+    // Send a ping to confirm a successful connection
+    await mongoCli.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+	// await loadBannedIps(mongoCli, socket);
+
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await mongoCli.close();
+  }
+}
+run().catch(console.dir);
+
+
 let port = process.env.PORT || 127;
 let host = "0.0.0.0"; 
 let express = require("express");
@@ -32,8 +74,22 @@ if (!fs.existsSync("history")){
 }
 
 let roomNameMap = {}; // maps room's name to room object
-let roomList = {} // map room's name to players in it and its paint history size
+let roomList = {} // map room's name to playfers in it and its paint history size
 let bannedIps = [];
+let joinedIps = [];
+
+function checkSocket(socket){
+	if (!socket.room) io.to(socket.id).emit("disconnected");
+	return !socket.room;
+}
+function getIp(socket){
+	return socket.handshake.headers['x-forwarded-for'] || socket.request.connection.remoteAddress
+}
+function randInt(min, max){
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min) + min);
+}
 
 function checkForLinkJoin(socket){
 	let ip = getIp(socket);
@@ -49,7 +105,7 @@ function checkForLinkJoin(socket){
 	if (roomName in roomNameMap){
 		socket.room = roomNameMap[roomName];
 		if (socket.room.bannedIps.includes(ip)){
-			io.to(socket.id).emit("banned");;
+			io.to(socket.id).emit("banned");
 			socket.disconnect();
 			return;
 		}
@@ -73,6 +129,15 @@ function checkForLinkJoin(socket){
 }
 
 io.on("connection", (socket) => {
+	let ip = getIp(socket);
+	if (joinedIps.includes(ip)) {
+		io.to(socket.id).emit("ipReconnect"); 
+		socket.disconnect();
+		return;
+	}
+
+	joinedIps.push(ip);
+
   	console.log(socket.id);
 
 	checkForLinkJoin(socket);
@@ -198,6 +263,8 @@ io.on("connection", (socket) => {
 
   	socket.on("disconnect", (err) => {
 		if (checkSocket(socket)) return;
+		let ip = getIp(socket);
+		joinedIps.splice(joinedIps.indexOf(ip), 1);
 		socket.broadcast.emit("preLoginPlayerLeft", socket.room.name);
 		socket.to(socket.room.name).emit("playerLeft", socket.id);
 		socket.room.removeClient(socket.id);
@@ -208,9 +275,12 @@ io.on("connection", (socket) => {
 
 	socket.on("ipBan", (password, id) => {
 		if (checkSocket(socket)) return;
-		if (password !== "bigtitsareshit") return;
+		if (password !== "banhim") return;
 		let s = io.sockets.sockets.get(id);
 		bannedIps.push(getIp(s));
+
+
+
 		socket.to(socket.room.name).emit("enemyBanned", id);
 		io.to(id).emit("banned");
 		s.disconnect();
@@ -237,19 +307,6 @@ io.on("connection", (socket) => {
 		
 	});
 });
-
-function checkSocket(socket){
-	if (!socket.room) io.to(socket.id).emit("disconnected");
-	return !socket.room;
-}
-function getIp(socket){
-	return socket.handshake.headers['x-forwarded-for'] || socket.request.connection.remoteAddress
-}
-function randInt(min, max){
-	min = Math.ceil(min);
-	max = Math.floor(max);
-	return Math.floor(Math.random() * (max - min) + min);
-}
 
 class Room{
 	constructor(name){

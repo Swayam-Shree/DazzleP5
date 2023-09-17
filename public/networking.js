@@ -21,6 +21,10 @@ function networkSetup(){
 		makeDisconnect("get banned lmao");
 		login_pointer.remove();	
 	});
+	socket.on("ipReconnect", () =>{
+		makeDisconnect("failed ddos lol!!");
+		login_pointer.remove();
+	});
 	socket.on("kicked", () =>{
 		makeDisconnect("You have been kicked due to spamming or griefing. If continued you will be banned permanently.");
 		login_pointer.remove();	
